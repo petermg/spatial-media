@@ -148,8 +148,8 @@ class sv3dBox(box.Box):
             out_fh.write(struct.pack(">I", 0))  # version+flags
             out_fh.write(struct.pack(">I", 0))
             out_fh.write(struct.pack(">I", 0))
-            out_fh.write(struct.pack(">I", 0))
-            out_fh.write(struct.pack(">I", 0))
+            out_fh.write(struct.pack(">I", 1073741823))
+            out_fh.write(struct.pack(">I", 1073741823))
         elif self.projection == "cubemap":
             out_fh.write(struct.pack(">I", 20)) # size
             out_fh.write("cbmp")                # tag
