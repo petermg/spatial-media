@@ -13,7 +13,9 @@ It seems to work with top bottom and side by side layouts.
 Typical usage:
 
 python spatialmedia -i -s left-right -m equirectangular Test_180_3D.mp4 Test_STV2_180_3D.mp4
+
 or
+
 python spatialmedia -i -s top-bottom -m equirectangular Test_180_3D.mp4 Test_STV2_180_3D.mp4
 
 This will take the first file, inject the metadata and write the result out to the second file.
