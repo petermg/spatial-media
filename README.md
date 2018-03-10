@@ -2,12 +2,11 @@ This fork is designed to fake googles VR180 camera metadata.
 It uses Spherical Video V2 metadata with the left and right crop set to 
 1073741823 which is 0x3FFFFFFF or 1/4 of 0xFFFFFFFF.
 
-Note this breaks 360 video's at the momenti as I've haven't coded any options I just wanted to get
-this out to the public.
+Note Google may decide to break this as they do not seem to be interested in telling people how to do this.
 
-Note 2. Google may decide to break this as they do not seem to be interested in telling people how to do this.
+It should now have have a working gui and should work again with 360 degree videos using the -d or --degree arguements.
 
-To use it you need a copy of python 2.7 (I've not tried it with 3.x)  and use the command line.
+To use it you need a copy of python 2.7 (I've not tried it with 3.x)  and use the command line or GUI.
 It seems to work with top bottom and side by side layouts.
 
 Typical usage:
@@ -20,7 +19,14 @@ python spatialmedia -i -s top-bottom -m equirectangular Test_180_3D.mp4 Test_STV
 
 This will take the first file, inject the metadata and write the result out to the second file.
 
-This is basically kodabb/spatial-media sphericaltoolsv2 branch with two lines changed and
+or alternatively
+
+cd spatialmedia
+python gui.py
+
+to use the simple GUI.
+
+This is basically kodabb/spatial-media sphericaltoolsv2 branch with some hacking around
 merged into master so anyone wanting to use this doesn't have to play around with branches.
 
 THe original readme details below.
