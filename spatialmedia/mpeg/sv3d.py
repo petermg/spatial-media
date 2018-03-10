@@ -64,6 +64,11 @@ def load(fh, position=None, end=None):
     proj = fh.read(4)
     if proj == "equi":
         new_box.projection = "equirectangular"
+        tmp = struct.unpack(">I", fh.read(4))[0]
+        new_box.clip_top = struct.unpack(">I", fh.read(4))[0]
+        new_box.clip_bottom = struct.unpack(">I", fh.read(4))[0]
+        new_box.clip_left_right = struct.unpack(">I", fh.read(4))[0]
+        new_box.clip_right = struct.unpack(">I", fh.read(4))[0]
     elif proj == "cbmp":
         new_box.projection = "cubemap"
     else:
@@ -84,6 +89,10 @@ class sv3dBox(box.Box):
         self.yaw = 0
         self.pitch = 0
         self.roll = 0
+        self.clip_left_right = 0;
+        self.clip_right = 0;
+        self.clip_top = 0;
+        self.clip_bottom = 0;
 
     @staticmethod
     def create(metadata):
@@ -100,6 +109,8 @@ class sv3dBox(box.Box):
         new_box.yaw = float(metadata.orientation["yaw"])
         new_box.pitch = float(metadata.orientation["pitch"])
         new_box.roll = float(metadata.orientation["roll"])
+        new_box.clip_left_right = metadata.clip_left_right;
+        new_box.clip_right = metadata.clip_left_right;
 
         return new_box
 
@@ -109,10 +120,11 @@ class sv3dBox(box.Box):
         """
         console("\t\tSpherical Mode: %s" % self.projection)
         console("\t\t    [Yaw: %.02f, Pitch: %.02f, Roll: %.02f]" % (self.yaw, self.pitch, self.roll))
+        console("\t\t    [Clip Top: %d, Bottom: %d, Left: %d Right: %d]" % (self.clip_top, self.clip_bottom, self.clip_left_right, self.clip_right))
 
     def get_metadata_string(self):
         """ Outputs a concise single line audio metadata string. """
-        return "Spherical mode: %s (%f,%f,%f)" % (self.projection, self.yaw, self.pitch, self.roll)
+        return "Spherical mode: %s (%f,%f,%f) (%d,%d,%d,%d)" % (self.projection, self.yaw, self.pitch, self.roll, self.clip_top, self.clip_bottom, self.clip_left_right, self.clip_right)
 
     def save(self, in_fh, out_fh, delta):
         if (self.header_size == 16):
@@ -148,8 +160,8 @@ class sv3dBox(box.Box):
             out_fh.write(struct.pack(">I", 0))  # version+flags
             out_fh.write(struct.pack(">I", 0))
             out_fh.write(struct.pack(">I", 0))
-            out_fh.write(struct.pack(">I", 1073741823))
-            out_fh.write(struct.pack(">I", 1073741823))
+            out_fh.write(struct.pack(">I", self.clip_left_right))
+            out_fh.write(struct.pack(">I", self.clip_left_right))
         elif self.projection == "cubemap":
             out_fh.write(struct.pack(">I", 20)) # size
             out_fh.write("cbmp")                # tag

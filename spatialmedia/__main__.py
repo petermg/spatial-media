@@ -92,6 +92,15 @@ def main():
       metavar="ROLL",
       default=0,
       help="roll")
+  video_group.add_argument(
+      "-d",
+      "--degrees",
+      action="store",
+      dest="degrees",
+      metavar="DEGREES",
+      choices=["180", "360"],
+      default=180,
+      help="degrees")
 
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
@@ -117,6 +126,8 @@ def main():
 
     if args.projection:
       metadata.spherical = args.projection
+      if metadata.spherical == "equirectangular":
+          metadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
 
     if args.spatial_audio:
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA

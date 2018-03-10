@@ -42,11 +42,13 @@ class Metadata(object):
         self.orientation = None
         self.video = None
         self.audio = None
+        self.clip_left_right = 0
 
 class ParsedMetadata(object):
     def __init__(self):
         self.audio = None
         self.video = dict()
+        self.stereo = dict()
         self.num_audio_channels = 0
 
 def mpeg4_add_spherical_v2(mpeg4_file, in_fh, spherical_metadata, console):
@@ -250,8 +252,10 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                                 elif container_elem.name in \
                                         mpeg.constants.VIDEO_SAMPLE_DESCRIPTIONS:
                                     for stsd_subelem in container_elem.contents:
-                                        if stsd_subelem.name == mpeg.constants.TAG_ST3D or \
-                                           stsd_subelem.name == mpeg.constants.TAG_SV3D:
+                                        if stsd_subelem.name == mpeg.constants.TAG_ST3D:
+                                            stsd_subelem.print_box(console)
+                                            metadata.stereo[trackName] = stsd_subelem
+                                        elif stsd_subelem.name == mpeg.constants.TAG_SV3D:
                                             stsd_subelem.print_box(console)
                                             metadata.video[trackName] = stsd_subelem
     return metadata

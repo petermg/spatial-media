@@ -77,6 +77,7 @@ class st3dBox(box.Box):
         new_box.name = constants.TAG_ST3D
         new_box.version = 0 # uint8 + uint24 (flags)
         new_box.content_size += 4
+        print stereo_metadata
         new_box.stereo_mode = st3dBox.stereo_modes[stereo_metadata] # uint8
         new_box.content_size += 1
 

@@ -67,6 +67,7 @@ class Application(Frame):
         if parsed_metadata:
             metadata = parsed_metadata.video
             audio_metadata = parsed_metadata.audio
+            stereo = parsed_metadata.stereo
 
         for line in console.log:
             if "Error" in line:
@@ -79,24 +80,27 @@ class Application(Frame):
                 return
 
         self.enable_state()
-        self.checkbox_spherical.configure(state="normal")
+        #        self.checkbox_spherical.configure(state="normal")
 
         infile = os.path.abspath(self.in_file)
         file_extension = os.path.splitext(infile)[1].lower()
 
-        self.var_spherical.set(1)
+        #   self.var_spherical.set(1)
         self.enable_spatial_audio = parsed_metadata.num_audio_channels == 4
 
         if not metadata:
-            self.var_3d.set(0)
+            #    self.var_3d.set(0)
+            self.var_degrees.set(1073741823)
+            self.var_layout.set("left-right")
 
         if not audio_metadata:
             self.var_spatial_audio.set(0)
 
         if metadata:
             metadata = metadata.itervalues().next()
+            self.var_degrees.set(metadata.clip_left_right)
 
-            if metadata.get("Spherical", "") == "true":
+            """if metadata.get("Spherical", "") == "true":
                 self.var_spherical.set(1)
             else:
                 self.var_spherical.set(0)
@@ -105,6 +109,11 @@ class Application(Frame):
                 self.var_3d.set(1)
             else:
                 self.var_3d.set(0)
+            """
+
+        if stereo:
+            stereo = stereo.itervalues().next()
+            self.var_layout.set(stereo.stereo_mode_name());
 
         if audio_metadata:
             self.var_spatial_audio.set(1)
@@ -113,23 +122,30 @@ class Application(Frame):
         self.update_state()
 
     def action_inject_delay(self):
-        stereo = None
-        if (self.var_3d.get()):
-            stereo = "top-bottom"
-
+        stereo = self.var_layout
+        
         metadata = metadata_utils.Metadata()
-        metadata.video = metadata_utils.generate_spherical_xml(stereo=stereo)
+        
+        metadata.stereo = self.var_layout.get()
+        metadata.spherical = "equirectangular"
+        metadata.clip_left_right = self.var_degrees.get()
 
         if self.var_spatial_audio.get():
-            metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA 
+            metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
 
         console = Console()
-        metadata_utils.inject_metadata(
-            self.in_file, self.save_file, metadata, console.append)
-        self.set_message("Successfully saved file to %s\n"
-                         % ntpath.basename(self.save_file))
-        self.button_open.configure(state="normal")
-        self.update_state()
+    
+        if metadata.stereo or metadata.spherical or metadata.audio:
+            metadata.orientation = {"yaw": 0, "pitch": 0, "roll": 0}
+            metadata_utils.inject_metadata(self.in_file, self.save_file, metadata, console.append)
+            self.set_message("Successfully saved file to %s\n"
+                     % ntpath.basename(self.save_file))
+            self.button_open.configure(state="normal")
+            self.update_state()
+        else:
+            console("Failed to generate metadata.")
+        return
+
 
     def action_inject(self):
         """Inject metadata into a new save file."""
@@ -161,13 +177,14 @@ class Application(Frame):
         self.button_open.configure(state="normal")
 
     def disable_state(self):
-        self.checkbox_spherical.configure(state="disabled")
+        #     self.checkbox_spherical.configure(state="disabled")
+        #     self.checkbox_3D.configure(state="disabled")
         self.checkbox_spatial_audio.configure(state="disabled")
-        self.checkbox_3D.configure(state="disabled")
         self.button_inject.configure(state="disabled")
         self.button_open.configure(state="disabled")
 
     def update_state(self):
+        """
         self.checkbox_spherical.configure(state="normal")
         if self.var_spherical.get():
             self.checkbox_3D.configure(state="normal")
@@ -178,6 +195,8 @@ class Application(Frame):
             self.checkbox_3D.configure(state="disabled")
             self.button_inject.configure(state="disabled")
             self.checkbox_spatial_audio.configure(state="disabled")
+        """
+        self.button_inject.configure(state="normal")
 
     def set_error(self, text):
         self.label_message["text"] = text
@@ -206,30 +225,82 @@ class Application(Frame):
         separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
         separator.grid(columnspan=row, padx=PAD_X, pady=4, sticky=N+E+S+W)
 
-        # Spherical Checkbox
+        # 180 or 360
         row += 1
-        self.label_spherical = Label(self, anchor=W)
-        self.label_spherical["text"] = "My video is spherical (360)"
-        self.label_spherical.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+        self.label_degrees = Label(self, anchor=W)
+        self.label_degrees["text"] = "My video is 180 or 360 degree..."
+        self.label_degrees.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
         column += 1
+      
+        self.var_degrees = IntVar()
 
-        self.var_spherical = IntVar()
-        self.checkbox_spherical = Checkbutton(self, variable=self.var_spherical)
-        self.checkbox_spherical["command"] = self.action_set_spherical
-        self.checkbox_spherical.grid(row=row, column=column, padx=PAD_X, pady=2)
+        Radiobutton(self,
+                    text="180",
+                    padx = 10,
+                    variable=self.var_degrees,
+                    value=1073741823).grid(row=row, column=column, padx=0, pady=0)
 
-        # 3D
-        row = row + 1
+        row += 1
+        Radiobutton(self,
+                    text="360",
+                    padx = 10,
+                    variable=self.var_degrees,
+                    value=0).grid(row=row, column=column, padx=0, pady=0)
+
+
+        self.var_degrees.set(1073741823)
+        
+        # video layout
         column = 0
-        self.label_3D = Label(self, anchor=W)
-        self.label_3D["text"] = "My video is stereoscopic 3D (top/bottom layout)"
-        self.label_3D.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+        row += 1
+        self.label_layout = Label(self, anchor=W)
+        self.label_layout["text"] = "My video layout is..."
+        self.label_layout.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
         column += 1
+        
+        self.var_layout = StringVar()
+        
+        Radiobutton(self,
+                    text="left-right",
+                    padx = 18,
+                    variable=self.var_layout,
+                    value="left-right").grid(row=row, column=column, padx=0, pady=0)
+            
+        row += 1
+        Radiobutton(self,
+                    text="top-bottom",
+                    padx = 10,
+                    variable=self.var_layout,
+                    value="top-bottom").grid(row=row, column=column, padx=0, pady=0)
 
-        self.var_3d = IntVar()
-        self.checkbox_3D = Checkbutton(self, variable=self.var_3d)
-        self.checkbox_3D["command"] = self.action_set_3d
-        self.checkbox_3D.grid(row=row, column=column, padx=PAD_X, pady=2)
+        self.var_layout.set("left-right")
+
+        """
+    # Spherical Checkbox
+    row += 1
+    self.label_spherical = Label(self, anchor=W)
+    self.label_spherical["text"] = "My video is spherical (180)"
+    self.label_spherical.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+    column += 1
+    
+    self.var_spherical = IntVar()
+    self.checkbox_spherical = Checkbutton(self, variable=self.var_spherical)
+    self.checkbox_spherical["command"] = self.action_set_spherical
+    self.checkbox_spherical.grid(row=row, column=column, padx=PAD_X, pady=2)
+    
+    # 3D
+    row = row + 1
+    column = 0
+    self.label_3D = Label(self, anchor=W)
+    self.label_3D["text"] = "My video is stereoscopic 3D (top/bottom layout)"
+    self.label_3D.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+    column += 1
+    
+    self.var_3d = IntVar()
+    self.checkbox_3D = Checkbutton(self, variable=self.var_3d)
+    self.checkbox_3D["command"] = self.action_set_3d
+    self.checkbox_3D.grid(row=row, column=column, padx=PAD_X, pady=2)
+        """
 
         # Spatial Audio Checkbox
         row += 1
@@ -237,18 +308,18 @@ class Application(Frame):
         self.label_spatial_audio = Label(self, anchor=W)
         self.label_spatial_audio["text"] = "My video has spatial audio (ambiX ACN/SN3D format)"
         self.label_spatial_audio.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
-
+    
         column += 1
         self.var_spatial_audio = IntVar()
         self.checkbox_spatial_audio = \
-            Checkbutton(self, variable=self.var_spatial_audio)
+        Checkbutton(self, variable=self.var_spatial_audio)
         self.checkbox_spatial_audio["command"] = self.action_set_spatial_audio
-        self.checkbox_spatial_audio.grid(
-            row=row, column=column, padx=0, pady=0)
-
+        self.checkbox_spatial_audio.grid(row=row, column=column, padx=0, pady=0)
+    
         row = row + 1
         separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
         separator.grid(columnspan=row, padx=PAD_X, pady=10, sticky=N+E+S+W)
+
 
         # Button Frame
         column = 0
