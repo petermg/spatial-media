@@ -112,16 +112,16 @@ class SA3DBox(box.Box):
         return new_box
 
     def ambisonic_type_name(self):
-        return  (key for key,value in SA3DBox.ambisonic_types.items()
-                 if value==self.ambisonic_type).next()
+        return  next(key for key,value in SA3DBox.ambisonic_types.items()
+                 if value==self.ambisonic_type)
 
     def ambisonic_channel_ordering_name(self):
-        return (key for key,value in SA3DBox.ambisonic_orderings.items()
-                if value==self.ambisonic_channel_ordering).next()
+        return next(key for key,value in SA3DBox.ambisonic_orderings.items()
+                if value==self.ambisonic_channel_ordering)
 
     def ambisonic_normalization_name(self):
-        return (key for key,value in SA3DBox.ambisonic_normalizations.items()
-                if value==self.ambisonic_normalization).next()
+        return next(key for key,value in SA3DBox.ambisonic_normalizations.items()
+                if value==self.ambisonic_normalization)
 
     def print_box(self, console):
         """ Prints the contents of this spatial audio (SA3D) box to the

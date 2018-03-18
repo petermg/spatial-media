@@ -97,7 +97,7 @@ class Application(Frame):
             self.var_spatial_audio.set(0)
 
         if metadata:
-            metadata = metadata.itervalues().next()
+            metadata = next(metadata.itervalues())
             self.var_degrees.set(metadata.clip_left_right)
 
             """if metadata.get("Spherical", "") == "true":
@@ -112,7 +112,7 @@ class Application(Frame):
             """
 
         if stereo:
-            stereo = stereo.itervalues().next()
+            stereo = next(stereo.itervalues())
             self.var_layout.set(stereo.stereo_mode_name());
 
         if audio_metadata:

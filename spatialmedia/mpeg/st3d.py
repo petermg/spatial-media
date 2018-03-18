@@ -83,8 +83,8 @@ class st3dBox(box.Box):
         return new_box
 
     def stereo_mode_name(self):
-        return  (key for key,value in st3dBox.stereo_modes.items()
-                 if value==self.stereo_mode).next()
+        return  next(key for key,value in st3dBox.stereo_modes.items()
+                 if value==self.stereo_mode)
 
     def print_box(self, console):
         """ Prints the contents of this stereoscopic (st3d) box to the
