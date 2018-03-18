@@ -174,7 +174,7 @@ def index_copy(in_fh, out_fh, box, mode, mode_length, delta=0):
         content = fh.read(mode_length)
         content = struct.unpack(mode, content)[0] + delta
         new_contents.append(struct.pack(mode, content))
-    out_fh.write("".join(new_contents))
+    out_fh.write("".encode().join(new_contents))
 
 
 def stco_copy(in_fh, out_fh, box, delta=0):

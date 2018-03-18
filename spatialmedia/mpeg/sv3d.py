@@ -149,9 +149,9 @@ class sv3dBox(box.Box):
         out_fh.write(struct.pack(">I", 24))     # size
         out_fh.write("prhd".encode())           # tag
         out_fh.write(struct.pack(">I", 0))      # version+flags
-        out_fh.write(struct.pack(">I", self.yaw * 65536))   # yaw
-        out_fh.write(struct.pack(">I", self.pitch * 65536)) # pitch
-        out_fh.write(struct.pack(">I", self.roll * 65536))  # roll
+        out_fh.write(struct.pack(">I", int(self.yaw * 65536)))   # yaw
+        out_fh.write(struct.pack(">I", int(self.pitch * 65536))) # pitch
+        out_fh.write(struct.pack(">I", int(self.roll * 65536)))  # roll
 
         #cmbp or equi
         if self.projection == "equirectangular":
