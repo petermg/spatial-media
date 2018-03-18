@@ -44,14 +44,14 @@ def load(fh, position=None, end=None):
     new_box = sv3dBox()
     new_box.position = position
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4)
+    name = fh.read(4).decode()
 
     if (name != constants.TAG_SV3D):
-        print "Error: box is not an sv3d box."
+        print ("Error: box is not an sv3d box.")
         return None
 
     if (position + size > end):
-        print "Error: sv3d box size exceeds bounds."
+        print ("Error: sv3d box size exceeds bounds.")
         return None
 
     fh.read(13) #svhd
@@ -61,7 +61,7 @@ def load(fh, position=None, end=None):
     new_box.pitch = struct.unpack(">I", fh.read(4))[0] / 65536
     new_box.roll = struct.unpack(">I", fh.read(4))[0] / 65536
     fh.read(4) #size
-    proj = fh.read(4)
+    proj = fh.read(4).decode()
     if proj == "equi":
         new_box.projection = "equirectangular"
         tmp = struct.unpack(">I", fh.read(4))[0]
@@ -72,7 +72,7 @@ def load(fh, position=None, end=None):
     elif proj == "cbmp":
         new_box.projection = "cubemap"
     else:
-        print "Unknown projection type."
+        print ("Unknown projection type.")
         return None
 
     return new_box
@@ -130,24 +130,24 @@ class sv3dBox(box.Box):
         if (self.header_size == 16):
             out_fh.write(struct.pack(">I", 1))
             out_fh.write(struct.pack(">Q", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
         elif(self.header_size == 8):
             out_fh.write(struct.pack(">I", self.content_size + self.header_size))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
 
         #svhd
         out_fh.write(struct.pack(">I", 13))     # size
-        out_fh.write("svhd")                    # tag
+        out_fh.write("svhd".encode())           # tag
         out_fh.write(struct.pack(">I", 0))      # version+flags
         out_fh.write(struct.pack(">B", 0))      # metadata
 
         #proj
         out_fh.write(struct.pack(">I", self.proj_size)) #size
-        out_fh.write("proj") # proj
+        out_fh.write("proj".encode())                   # proj
 
         #prhd
         out_fh.write(struct.pack(">I", 24))     # size
-        out_fh.write("prhd")                    # tag
+        out_fh.write("prhd".encode())           # tag
         out_fh.write(struct.pack(">I", 0))      # version+flags
         out_fh.write(struct.pack(">I", self.yaw * 65536))   # yaw
         out_fh.write(struct.pack(">I", self.pitch * 65536)) # pitch
@@ -156,7 +156,7 @@ class sv3dBox(box.Box):
         #cmbp or equi
         if self.projection == "equirectangular":
             out_fh.write(struct.pack(">I", 28)) # size
-            out_fh.write("equi")                # tag
+            out_fh.write("equi".encode())       # tag
             out_fh.write(struct.pack(">I", 0))  # version+flags
             out_fh.write(struct.pack(">I", 0))
             out_fh.write(struct.pack(">I", 0))
@@ -164,7 +164,7 @@ class sv3dBox(box.Box):
             out_fh.write(struct.pack(">I", self.clip_left_right))
         elif self.projection == "cubemap":
             out_fh.write(struct.pack(">I", 20)) # size
-            out_fh.write("cbmp")                # tag
+            out_fh.write("cbmp".encode())       # tag
             out_fh.write(struct.pack(">I", 0))  # version+flags
             out_fh.write(struct.pack(">I", 0))  # layout
             out_fh.write(struct.pack(">I", 0))  # padding

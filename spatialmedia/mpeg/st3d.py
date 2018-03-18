@@ -44,14 +44,14 @@ def load(fh, position=None, end=None):
     new_box = st3dBox()
     new_box.position = position
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4)
+    name = fh.read(4).decode()
 
     if (name != constants.TAG_ST3D):
-        print "Error: box is not an st3d box."
+        print ("Error: box is not an st3d box.")
         return None
 
     if (position + size > end):
-        print "Error: st3d box size exceeds bounds."
+        print ("Error: st3d box size exceeds bounds.")
         return None
 
     new_box.content_size = size - new_box.header_size
@@ -77,7 +77,6 @@ class st3dBox(box.Box):
         new_box.name = constants.TAG_ST3D
         new_box.version = 0 # uint8 + uint24 (flags)
         new_box.content_size += 4
-        print stereo_metadata
         new_box.stereo_mode = st3dBox.stereo_modes[stereo_metadata] # uint8
         new_box.content_size += 1
 
@@ -102,10 +101,10 @@ class st3dBox(box.Box):
         if (self.header_size == 16):
             out_fh.write(struct.pack(">I", 1))
             out_fh.write(struct.pack(">Q", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
         elif(self.header_size == 8):
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
 
         out_fh.write(struct.pack(">I", self.version))
         out_fh.write(struct.pack(">B", self.stereo_mode))

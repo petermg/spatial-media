@@ -20,7 +20,7 @@
 Tool for loading mpeg4 files and manipulating atoms.
 """
 
-import StringIO
+import io 
 import struct
 
 from spatialmedia.mpeg import constants
@@ -41,7 +41,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4)
+    name = fh.read(4).decode()
 
     if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
@@ -88,11 +88,11 @@ class Box(object):
         """
         if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
             out_fh.write(struct.pack(">Q", self.size()))
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
 
         if self.content_start():
             in_fh.seek(self.content_start())
@@ -162,7 +162,7 @@ def index_copy(in_fh, out_fh, box, mode, mode_length, delta=0):
     if not box.contents:
         fh.seek(box.content_start())
     else:
-        fh = StringIO.StringIO(box.contents)
+        fh = io.BytesIO(box.contents)
 
     header = struct.unpack(">I", fh.read(4))[0]
     values = struct.unpack(">I", fh.read(4))[0]

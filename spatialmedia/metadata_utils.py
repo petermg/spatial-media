@@ -19,7 +19,7 @@
 
 import os
 import re
-import StringIO
+import io
 import struct
 import traceback
 
@@ -70,7 +70,7 @@ def mpeg4_add_spherical_v2(mpeg4_file, in_fh, spherical_metadata, console):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if in_fh.read(4) == mpeg.constants.TAG_VIDE:
+                    if in_fh.read(4).decode() == mpeg.constants.TAG_VIDE:
                         return inject_spherical_atom(in_fh, sub_element, spherical_metadata, console)
     return False
 
@@ -114,7 +114,7 @@ def mpeg4_add_stereo(mpeg4_file, in_fh, stereo_metadata, console):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if in_fh.read(4) == mpeg.constants.TAG_VIDE:
+                    if in_fh.read(4).decode() == mpeg.constants.TAG_VIDE:
                         return inject_stereo_mode_atom(in_fh, sub_element, stereo_metadata, console)
     return False
 
@@ -160,7 +160,7 @@ def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if in_fh.read(4) == mpeg.constants.TAG_SOUN:
+                    if in_fh.read(4).decode() == mpeg.constants.TAG_SOUN:
                         return inject_spatial_audio_atom(
                             in_fh, sub_element, audio_metadata, console)
     return True
@@ -489,6 +489,6 @@ def get_num_audio_tracks(mpeg4_file, in_fh):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if (in_fh.read(4) == mpeg.constants.TAG_SOUN):
+                    if (in_fh.read(4).decode() == mpeg.constants.TAG_SOUN):
                         num_audio_tracks += 1
     return num_audio_tracks

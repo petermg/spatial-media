@@ -44,7 +44,7 @@ def load(fh, position=None, end=None):
     new_box = SA3DBox()
     new_box.position = position
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4)
+    name = fh.read(4).decode()
 
     if (name != constants.TAG_SA3D):
         print ("Error: box is not an SA3D box.")
@@ -152,10 +152,10 @@ class SA3DBox(box.Box):
         if (self.header_size == 16):
             out_fh.write(struct.pack(">I", 1))
             out_fh.write(struct.pack(">Q", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
         elif(self.header_size == 8):
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
 
         out_fh.write(struct.pack(">B", self.version))
         out_fh.write(struct.pack(">B", self.ambisonic_type))
