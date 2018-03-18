@@ -377,7 +377,7 @@ def get_expected_num_audio_components(ambisonics_type, ambisonics_order):
 
 def get_num_audio_channels(stsd, in_fh):
     if stsd.name != mpeg.constants.TAG_STSD:
-        print "get_num_audio_channels should be given a STSD box"
+        print ("get_num_audio_channels should be given a STSD box")
         return -1
     for sample_description in stsd.contents:
         if sample_description.name == mpeg.constants.TAG_MP4A:
@@ -415,7 +415,7 @@ def get_sample_description_num_channels(sample_description, in_fh):
         audio_sample_rate = struct.unpack(">d", in_fh.read(8))[0]
         num_audio_channels = struct.unpack(">i", in_fh.read(4))[0]
     else:
-        print "Unsupported version for " + sample_description.name + " box"
+        print ("Unsupported version for " + sample_description.name + " box")
         return -1
 
     in_fh.seek(p)
@@ -443,7 +443,7 @@ def get_aac_num_channels(box, in_fh):
 
         # Verify the read descriptor is an elementary stream descriptor
         if ord(descriptor_tag) != 3:  # Not an MP4 elementary stream.
-            print "Error: failed to read elementary stream descriptor."
+            print ("Error: failed to read elementary stream descriptor.")
             return -1
         get_descriptor_length(in_fh)
         in_fh.seek(3, 1)  # Seek to the decoder configuration descriptor
@@ -451,7 +451,7 @@ def get_aac_num_channels(box, in_fh):
 
         # Verify the read descriptor is a decoder config. descriptor.
         if ord(config_descriptor_tag) != 4:
-            print "Error: failed to read decoder config. descriptor."
+            print ("Error: failed to read decoder config. descriptor.")
             return -1
         get_descriptor_length(in_fh)
         in_fh.seek(13, 1) # offset to the decoder specific config descriptor.
@@ -459,7 +459,7 @@ def get_aac_num_channels(box, in_fh):
 
         # Verify the read descriptor is a decoder specific info descriptor
         if ord(decoder_specific_descriptor_tag) != 5:
-            print "Error: failed to read MP4 audio decoder specific config."
+            print ("Error: failed to read MP4 audio decoder specific config.")
             return -1
         audio_specific_descriptor_size = get_descriptor_length(in_fh)
         assert audio_specific_descriptor_size >= 2
@@ -469,7 +469,7 @@ def get_aac_num_channels(box, in_fh):
         if sampling_frequency_index == 0:
             # TODO: If the sample rate is 96kHz an additional 24 bit offset
             # value here specifies the actual sample rate.
-            print "Error: Greater than 48khz audio is currently not supported."
+            print ("Error: Greater than 48khz audio is currently not supported.");
             return -1
         channel_configuration = (int("0078", 16) & decoder_descriptor) >> 3
     in_fh.seek(p)
