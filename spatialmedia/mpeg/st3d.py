@@ -44,7 +44,7 @@ def load(fh, position=None, end=None):
     new_box = st3dBox()
     new_box.position = position
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4).decode()
+    name = fh.read(4).decode('utf-8')
 
     if (name != constants.TAG_ST3D):
         print ("Error: box is not an st3d box.")
@@ -101,10 +101,10 @@ class st3dBox(box.Box):
         if (self.header_size == 16):
             out_fh.write(struct.pack(">I", 1))
             out_fh.write(struct.pack(">Q", self.size()))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name.encode('utf-8'))
         elif(self.header_size == 8):
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name.encode('utf-8'))
 
         out_fh.write(struct.pack(">I", self.version))
         out_fh.write(struct.pack(">B", self.stereo_mode))

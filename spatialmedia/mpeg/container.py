@@ -36,7 +36,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4).decode("utf8")
+    name = fh.read(4).decode('utf-8')
 
     is_box = False
     if (name not in constants.AUDIO_CONTAINERS_LIST) and \
@@ -218,11 +218,11 @@ class Container(box.Box):
         """
         if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name.encode('utf-8'))
             out_fh.write(struct.pack(">Q", self.size()))
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name.encode('utf-8'))
 
         if self.padding > 0:
             in_fh.seek(self.content_start())
