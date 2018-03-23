@@ -36,7 +36,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4).decode()
+    name = fh.read(4).decode("utf8")
 
     is_box = False
     if (name not in constants.AUDIO_CONTAINERS_LIST) and \
