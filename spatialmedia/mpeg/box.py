@@ -41,7 +41,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4).decode('utf-8')
+    name = fh.read(4).decode('latin1')
 
     if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
@@ -88,11 +88,11 @@ class Box(object):
         """
         if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name.encode('utf-8'))
+            out_fh.write(self.name.encode('latin1'))
             out_fh.write(struct.pack(">Q", self.size()))
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name.encode('utf-8'))
+            out_fh.write(self.name.encode('latin1'))
 
         if self.content_start():
             in_fh.seek(self.content_start())
@@ -174,7 +174,7 @@ def index_copy(in_fh, out_fh, box, mode, mode_length, delta=0):
         content = fh.read(mode_length)
         content = struct.unpack(mode, content)[0] + delta
         new_contents.append(struct.pack(mode, content))
-    out_fh.write("".encode('utf-8').join(new_contents))
+    out_fh.write("".encode('latin1').join(new_contents))
 
 
 def stco_copy(in_fh, out_fh, box, delta=0):

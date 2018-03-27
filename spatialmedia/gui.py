@@ -53,7 +53,7 @@ class Console(object):
         self.log = []
 
     def append(self, text):
-        print(text.encode('utf-8'))
+        print(text.encode('latin1'))
         self.log.append(text)
 
 
