@@ -25,6 +25,7 @@ import struct
 
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
+from spatialmedia.mpeg import mesh_projection
 
 
 def load(fh, position=None, end=None):
@@ -60,6 +61,9 @@ def load(fh, position=None, end=None):
     new_box.yaw = struct.unpack(">I", fh.read(4))[0] / 65536
     new_box.pitch = struct.unpack(">I", fh.read(4))[0] / 65536
     new_box.roll = struct.unpack(">I", fh.read(4))[0] / 65536
+
+    projection_position = fh.tell()
+
     fh.read(4) #size
     proj = fh.read(4).decode('latin1')
     if proj == "equi":
@@ -71,8 +75,11 @@ def load(fh, position=None, end=None):
         new_box.clip_right = struct.unpack(">I", fh.read(4))[0]
     elif proj == "cbmp":
         new_box.projection = "cubemap"
+    elif proj == "ytmp":
+        new_box.projection = "mesh"
+        new_box.projection_box = mesh_projection.load(fh, projection_position, end)
     else:
-        print ("Unknown projection type.")
+        print ("Unknown projection type. " + new_box.projection)
         return None
 
     return new_box
@@ -93,6 +100,7 @@ class sv3dBox(box.Box):
         self.clip_right = 0;
         self.clip_top = 0;
         self.clip_bottom = 0;
+        self.projection_box=None;
 
     @staticmethod
     def create(metadata):
@@ -106,6 +114,12 @@ class sv3dBox(box.Box):
         elif new_box.projection == "cubemap":
             new_box.content_size = 73 - new_box.header_size
             new_box.proj_size = 52
+        if new_box.projection == "mesh":
+            new_box.projection_box = mesh_projection.mshpBox.create(metadata)
+            new_box.proj_size = new_box.projection_box.content_size + new_box.projection_box.header_size + 8 + 24 # mesh projection, proj and  prhd boxes
+            new_box.content_size = new_box.proj_size + 21 - new_box.header_size  # 21 is size of svhd & proj boxes
+        else:
+            new_box.projection_box=None;
         new_box.yaw = float(metadata.orientation["yaw"])
         new_box.pitch = float(metadata.orientation["pitch"])
         new_box.roll = float(metadata.orientation["roll"])
@@ -119,6 +133,7 @@ class sv3dBox(box.Box):
             console.
         """
         console("\t\tSpherical Mode: %s" % self.projection)
+        self.projection_box.print_box(console)
         console("\t\t    [Yaw: %.02f, Pitch: %.02f, Roll: %.02f]" % (self.yaw, self.pitch, self.roll))
         console("\t\t    [Clip Top: %d, Bottom: %d, Left: %d Right: %d]" % (self.clip_top, self.clip_bottom, self.clip_left_right, self.clip_right))
 
@@ -127,6 +142,7 @@ class sv3dBox(box.Box):
         return "Spherical mode: %s (%f,%f,%f) (%d,%d,%d,%d)" % (self.projection, self.yaw, self.pitch, self.roll, self.clip_top, self.clip_bottom, self.clip_left_right, self.clip_right)
 
     def save(self, in_fh, out_fh, delta):
+
         if (self.header_size == 16):
             out_fh.write(struct.pack(">I", 1))
             out_fh.write(struct.pack(">Q", self.size()))
@@ -168,3 +184,7 @@ class sv3dBox(box.Box):
             out_fh.write(struct.pack(">I", 0))  # version+flags
             out_fh.write(struct.pack(">I", 0))  # layout
             out_fh.write(struct.pack(">I", 0))  # padding
+        elif self.projection == "mesh":
+            self.projection_box.save(in_fh, out_fh, delta)
+
+

@@ -61,7 +61,7 @@ def load(fh, position=None, end=None):
 
 
 class st3dBox(box.Box):
-    stereo_modes = {'none': 0, 'top-bottom': 1, 'left-right': 2}
+    stereo_modes = {'none': 0, 'top-bottom': 1, 'left-right': 2, 'custom': 3}
 
     def __init__(self):
         box.Box.__init__(self)

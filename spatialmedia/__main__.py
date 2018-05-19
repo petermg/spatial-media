@@ -56,18 +56,18 @@ def main():
       action="store",
       dest="stereo_mode",
       metavar="STEREO-MODE",
-      choices=["none", "top-bottom", "left-right"],
+      choices=["none", "top-bottom", "left-right", "custom"],
       default=None,
-      help="stereo mode (none | top-bottom | left-right)")
+      help="stereo mode (none | top-bottom | left-right | custom)")
   video_group.add_argument(
       "-m",
       "--projection",
       action="store",
       dest="projection",
       metavar="SPHERICAL-MODE",
-      choices=["equirectangular", "cubemap"],
+      choices=["equirectangular", "cubemap", "mesh"],
       default=None,
-      help="projection (equirectangular | cubemap)")
+      help="projection (equirectangular | cubemap | mesh)")
   video_group.add_argument(
       "-y",
       "--yaw",
@@ -128,6 +128,11 @@ def main():
       metadata.spherical = args.projection
       if metadata.spherical == "equirectangular":
           metadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
+     
+      """
+      if metadata.spherical == "mesh":
+        metadata.stereo = "custom"
+      """
 
     if args.spatial_audio:
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
