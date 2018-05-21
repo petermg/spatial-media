@@ -135,6 +135,83 @@ def load(fh, position=None, end=None):
     return new_box
 
 
+def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
+
+    """
+        Create a hemi-sphere.
+        top and bottom are triangle fans joined at the pole
+        Rest is a grid of triangle strips.
+        
+    """
+    coordinates = []
+    vertices = []
+    triangles = []
+    triangle_list = []
+    
+    point_count = grid+1;
+    x_offset = x_scale / 2
+    y_offset = y_scale / 2
+
+    coord_index = 0
+    delta = 1.0 / grid
+    
+    for y_index in range(0,point_count):
+        
+        for x_index in range(0,point_count):
+            
+            u = x_index * delta
+            v = y_index * delta
+            z = -z_dist
+            x = (u * x_scale) - x_offset
+            y = (v * y_scale) - y_offset
+            coordinates.append (x)
+            coordinates.append (y)
+            coordinates.append (z)
+            coordinates.append (u)
+            coordinates.append (v)
+            
+            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z,u, v)
+            
+            
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+    
+    
+    """
+        generate triangles / triangles are counter-clockwise
+        """
+    
+    strip = []
+    
+    for row_index in range(0, grid):
+        for col_index in range(0, point_count):
+            i = col_index + (row_index * point_count)
+            j = col_index + ((row_index + 1)* point_count)
+            strip.extend([i, j])
+        if row_index < grid -1:
+            print "degen"
+            j = ((row_index + 1) * point_count)
+            i = grid + ((row_index + 1) * point_count)
+            strip.extend([i, j])
+
+    triangles.append ({'txt': 0, 'type': 1, 'count': len(strip), 'list':strip})
+
+
+    print triangles
+    
+    """
+        encode the indices
+    """
+    return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
+
 
 def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale):
     """
@@ -227,8 +304,11 @@ def get_uv(x,y,z, u_min, u_scale, v_min, v_scale):
     r = math.atan2(math.sqrt((x*x)+(y*y)),-z) / math.pi
     phi = math.atan2(y,x)
 
-    u = r * math.cos(phi) + 0.5
-    v = r * math.sin(phi) + 0.5
+    # test lens correction
+    #nr = (0.8*r) - (0.003 * r * r) + (0.03 * r * r * r) - (0.055 * r * r * r * r)
+
+    u = nr * math.cos(phi) + 0.5
+    v = nr * math.sin(phi) + 0.5
     
 
 
@@ -255,6 +335,7 @@ class meshBox(box.Box):
             new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1))
         else:
             new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1))
+            # new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
 
         return new_box
 

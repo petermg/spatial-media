@@ -91,7 +91,17 @@ def inject_spherical_atom(in_fh, video_media_atom, spherical_metadata, console):
                                    sample_description.header_size + 16)
 
                         sv3d_atom = mpeg.sv3dBox.create(spherical_metadata)
-                        sample_description.contents.append(sv3d_atom)
+                        
+                        old_atom_index = -1
+                        
+                        for idx, old_atom in enumerate(sample_description.contents):
+                            if old_atom.name == 'sv3d':
+                                old_atom_index = idx
+                        
+                        if old_atom_index > -1:
+                            sample_description.contents[old_atom_index] = sv3d_atom
+                        else:
+                            sample_description.contents.append(sv3d_atom)
                         return True
     return False
 

@@ -50,8 +50,8 @@ def load(fh, position=None, end=None):
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4).decode('latin1')
 
-    if (name != 'ytmp'):
-        print ("Error: box is not an mesh projection box.")
+    if (name != 'ytmp' and name != 'mshp'):
+        print ("Error: box is not an mesh projection box. " + name)
         return None
 
     if (position + size > end):

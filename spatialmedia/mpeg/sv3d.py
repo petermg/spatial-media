@@ -55,7 +55,9 @@ def load(fh, position=None, end=None):
         print ("Error: sv3d box size exceeds bounds.")
         return None
 
-    fh.read(13) #svhd
+    size = struct.unpack(">I", fh.read(4))[0]
+    fh.read(size - 4) #svhd
+
     fh.read(4 + 4) #proj
     fh.read(4 + 4 + 4) #prhd
     new_box.yaw = struct.unpack(">I", fh.read(4))[0] / 65536
@@ -76,6 +78,9 @@ def load(fh, position=None, end=None):
     elif proj == "cbmp":
         new_box.projection = "cubemap"
     elif proj == "ytmp":
+        new_box.projection = "mesh"
+        new_box.projection_box = mesh_projection.load(fh, projection_position, end)
+    elif proj == "mshp":
         new_box.projection = "mesh"
         new_box.projection_box = mesh_projection.load(fh, projection_position, end)
     else:
