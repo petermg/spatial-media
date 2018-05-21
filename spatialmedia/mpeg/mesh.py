@@ -307,8 +307,8 @@ def get_uv(x,y,z, u_min, u_scale, v_min, v_scale):
     # test lens correction
     #nr = (0.8*r) - (0.003 * r * r) + (0.03 * r * r * r) - (0.055 * r * r * r * r)
 
-    u = nr * math.cos(phi) + 0.5
-    v = nr * math.sin(phi) + 0.5
+    u = r * math.cos(phi) + 0.5
+    v = r * math.sin(phi) + 0.5
     
 
 
