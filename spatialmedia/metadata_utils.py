@@ -145,7 +145,18 @@ def inject_stereo_mode_atom(in_fh, video_media_atom, stereo_metadata, console):
                                    sample_description.header_size + 16)
 
                         st3d_atom = mpeg.st3dBox.create(stereo_metadata)
-                        sample_description.contents.append(st3d_atom)
+                        
+                        old_atom_index = -1
+                        
+                        for idx, old_atom in enumerate(sample_description.contents):
+                            if old_atom.name == 'st3d':
+                                old_atom_index = idx
+                        
+                        if old_atom_index > -1:
+                            sample_description.contents[old_atom_index] = st3d_atom
+                        else:
+                            sample_description.contents.append(st3d_atom)
+
                         return True
     return False
 

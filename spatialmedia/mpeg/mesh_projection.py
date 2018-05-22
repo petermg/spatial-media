@@ -81,7 +81,7 @@ def load(fh, position=None, end=None):
 class mshpBox(box.Box):
     def __init__(self):
         box.Box.__init__(self)
-        self.name = 'ytmp'
+        self.name = 'mshp'
         self.header_size = 16
         self.content_size = 0
         self.meshes = [];
