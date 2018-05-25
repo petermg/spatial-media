@@ -43,6 +43,7 @@ class Metadata(object):
         self.video = None
         self.audio = None
         self.clip_left_right = 0
+        self.fisheye_correction = [1.0, 0.0, 0.0, 0.0]
 
 class ParsedMetadata(object):
     def __init__(self):

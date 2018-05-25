@@ -53,10 +53,6 @@ def load(fh, position=None, end=None):
         print ("Error: box is not an mesh box.")
         return None
 
-    print end
-    print fh.tell()
-    print new_box.content_size
-
     if (position + new_box.content_size > end):
         print ("Error: mesh box size exceeds bounds.")
         return None
@@ -86,7 +82,7 @@ def load(fh, position=None, end=None):
     
     new_box.coordinates = struct.unpack(">{0}f".format(new_box.coordinate_count), fh.read(4*new_box.coordinate_count))
     
-    print new_box.coordinates
+    #    print new_box.coordinates
 
     ccsb =  int(math.ceil(math.log(new_box.coordinate_count * 2, 2.0)))
 
@@ -114,8 +110,8 @@ def load(fh, position=None, end=None):
     ccsb =  int(math.ceil(math.log(new_box.vertex_count * 2, 2.0)))
 
 
-    print "vertex_list_count:{0}".format(new_box.vertex_list_count);
-    print "ccsb:{0}".format(ccsb);
+#    print "vertex_list_count:{0}".format(new_box.vertex_list_count);
+#    print "ccsb:{0}".format(ccsb);
 
     new_box.vertex_list = []
     bit_read2 = bitwiseio.BitReader(fh)
@@ -129,7 +125,6 @@ def load(fh, position=None, end=None):
         for y in range(index_count):
             index_as_delta.append(bit_read2.readbits(ccsb))
         tmp = {'txt':texture_id, 'type':index_type, 'count':index_count, 'strip':index_as_delta}
-        print tmp
         new_box.vertex_list.append (tmp)
 
     return new_box
@@ -170,7 +165,7 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
             coordinates.append (u)
             coordinates.append (v)
             
-            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z,u, v)
+            #            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z,u, v)
             
             
             vertices.append(coord_index)
@@ -187,7 +182,7 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
     
     """
         generate triangles / triangles are counter-clockwise
-        """
+    """
     
     strip = []
     
@@ -197,7 +192,6 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
             j = col_index + ((row_index + 1)* point_count)
             strip.extend([i, j])
         if row_index < grid -1:
-            print "degen"
             j = ((row_index + 1) * point_count)
             i = grid + ((row_index + 1) * point_count)
             strip.extend([i, j])
@@ -205,7 +199,7 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
     triangles.append ({'txt': 0, 'type': 1, 'count': len(strip), 'list':strip})
 
 
-    print triangles
+#    print triangles
     
     """
         encode the indices
@@ -213,7 +207,7 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
     return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
 
 
-def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale):
+def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
     """
         Create a hemi-sphere.
         top and bottom are triangle fans joined at the pole
@@ -225,6 +219,8 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale):
     triangles = []
     triangle_list = []
     
+    print fisheye_correction
+
     point_count = grid+1;
 
     
@@ -251,9 +247,9 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale):
             
             mag = math.sqrt((x*x)+(y*y)+(z*z));
             
-            tmp = get_uv (x/mag,y/mag,z/mag, u_min, u_scale, v_min, v_scale)
+            tmp = get_uv (x/mag,y/mag,z/mag, u_min, u_scale, v_min, v_scale, fisheye_correction)
 
-            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1])
+#            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1])
             
             coordinates.extend(tmp)
             
@@ -284,7 +280,6 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale):
             j = col_index + ((row_index + 1)* point_count)
             strip.extend([i, j])
         if row_index < grid -1:
-            print "degen"
             j = ((row_index + 1) * point_count)
             i = grid + ((row_index + 1) * point_count)
             strip.extend([i, j])
@@ -292,26 +287,24 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale):
     triangles.append ({'txt': 0, 'type': 1, 'count': len(strip), 'list':strip})
 
 
-    print triangles
+#    print triangles
 
     """
         encode the indices
     """
     return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
 
-def get_uv(x,y,z, u_min, u_scale, v_min, v_scale):
+def get_uv(x,y,z, u_min, u_scale, v_min, v_scale, fisheye_correction):
 
     r = math.atan2(math.sqrt((x*x)+(y*y)),-z) / math.pi
     phi = math.atan2(y,x)
 
     # test lens correction
-    #nr = (0.8*r) - (0.003 * r * r) + (0.03 * r * r * r) - (0.055 * r * r * r * r)
+    nr = (fisheye_correction[0]*r) - (fisheye_correction[1] * r * r) + (fisheye_correction[2] * r * r * r) + (fisheye_correction[3] * r * r * r * r)
 
-    u = r * math.cos(phi) + 0.5
-    v = r * math.sin(phi) + 0.5
+    u = nr * math.cos(phi) + 0.5
+    v = nr * math.sin(phi) + 0.5
     
-
-
     return [(u *  u_scale) + u_min, (v * v_scale) + v_min]
 
 
@@ -330,11 +323,11 @@ class meshBox(box.Box):
         new_box.projection = metadata.spherical
         
         if metadata.stereo == 'none':
-            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1))
+            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction))
         elif metadata.stereo == 'top-botton':
-            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1))
+            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
         else:
-            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1))
+            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
             # new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
 
         return new_box

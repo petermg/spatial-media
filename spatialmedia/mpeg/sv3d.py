@@ -138,7 +138,8 @@ class sv3dBox(box.Box):
             console.
         """
         console("\t\tSpherical Mode: %s" % self.projection)
-        self.projection_box.print_box(console)
+        if self.projection_box:
+            self.projection_box.print_box(console)
         console("\t\t    [Yaw: %.02f, Pitch: %.02f, Roll: %.02f]" % (self.yaw, self.pitch, self.roll))
         console("\t\t    [Clip Top: %d, Bottom: %d, Left: %d Right: %d]" % (self.clip_top, self.clip_bottom, self.clip_left_right, self.clip_right))
 

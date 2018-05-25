@@ -101,7 +101,15 @@ def main():
       choices=["180", "360"],
       default=180,
       help="degrees")
-
+  video_group.add_argument(
+       "-c",
+       "--correction",
+       action="store",
+       dest="fisheye_correction",
+       metavar="FISHEYE-CORRECTION",
+       default="1:0:0:0",
+       help="polynomial fisheye lens correction (n1:n2:n3:n4) e.g 0.5:-0.1:0.2:-0.0005")
+       
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
       "-a",
@@ -128,14 +136,12 @@ def main():
       metadata.spherical = args.projection
       if metadata.spherical == "equirectangular":
           metadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
-     
-      """
-      if metadata.spherical == "mesh":
-        metadata.stereo = "custom"
-      """
 
     if args.spatial_audio:
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
+
+    if args.fisheye_correction:
+        metadata.fisheye_correction = [float(x) for x in args.fisheye_correction.split(':')]
 
     if metadata.stereo or metadata.spherical or metadata.audio:
       metadata.orientation = {"yaw": args.yaw, "pitch": args.pitch, "roll": args.roll}
