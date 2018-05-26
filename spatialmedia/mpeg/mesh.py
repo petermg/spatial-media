@@ -314,6 +314,7 @@ class meshBox(box.Box):
         box.Box.__init__(self)
         self.name = 'mesh'
         self.content_size = 0
+        self.meshes = 0
 
     @staticmethod
     def create(metadata):
@@ -324,10 +325,13 @@ class meshBox(box.Box):
         
         if metadata.stereo == 'none':
             new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction))
+            new_box.meshes = 1
         elif metadata.stereo == 'top-botton':
             new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
+            new_box.meshes = 2
         else:
             new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
+            new_box.meshes = 2
             # new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
 
         return new_box
@@ -336,12 +340,11 @@ class meshBox(box.Box):
         """ Prints the contents of this spherical (sv3d) box to the
             console.
         """
-        console("\t\tMesh Projection:" )
-        console("\t\t    [Mesh count]" % (len(self.meshes)))
+        console("\t\t    [Mesh count %d]" % self.meshes)
 
     def get_metadata_string(self):
         """ Outputs a concise single line audio metadata string. """
-        return "Mesh Projection: (%d)" % (len(self.meshes))
+        return self.meshes
     
     def process_mesh(self, mesh_details):
         """ mesh box is 4 byte size (include size itself)

@@ -67,6 +67,8 @@ def load(fh, position=None, end=None):
     elif encoding == 'raw ':
          mesh_data = fh.read(size - 16)
 
+    new_box.meshbox = mesh.meshBox()
+
     meshfh = io.BytesIO(mesh_data)
     meshbox = mesh.load(meshfh, 0,  len(mesh_data))
     new_box.meshes.append(meshbox)
@@ -74,6 +76,8 @@ def load(fh, position=None, end=None):
     if meshbox.content_size < len(mesh_data):
         meshbox = mesh.load(meshfh, meshfh.tell(), len(mesh_data))
         new_box.meshes.append(meshbox)
+
+    new_box.meshbox.meshes = len (new_box.meshes)
 
     return new_box
 
@@ -111,11 +115,11 @@ class mshpBox(box.Box):
             console.
         """
         console("\t\tMesh Projection:" )
-        console("\t\t    [Mesh count: %d]" % (len(self.meshes)))
+        self.meshbox.print_box(console)
 
     def get_metadata_string(self):
         """ Outputs a concise single line audio metadata string. """
-        return "Mesh Projection: (%d)" % (len(self.meshes))
+        return "Mesh Projection: " + self.meshbox.get_metadata_string();
 
     def save(self, in_fh, out_fh, delta):
         
