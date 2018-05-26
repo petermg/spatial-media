@@ -65,9 +65,9 @@ def main():
       action="store",
       dest="projection",
       metavar="SPHERICAL-MODE",
-      choices=["equirectangular", "cubemap", "mesh"],
+      choices=["equirectangular", "cubemap", "mesh", "full-frame"],
       default=None,
-      help="projection (equirectangular | cubemap | mesh)")
+      help="projection (equirectangular | cubemap | mesh | full-frame)")
   video_group.add_argument(
       "-y",
       "--yaw",

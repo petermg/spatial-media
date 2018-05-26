@@ -82,8 +82,6 @@ class Application(Frame):
             if "Error" in line:
                 self.set_error("Failed to load file %s"
                                % ntpath.basename(self.in_file))
-                self.var_spherical.set(0)
-                self.var_spatial_audio.set(0)
                 self.disable_state()
                 self.button_open.configure(state="normal")
                 return
@@ -99,15 +97,26 @@ class Application(Frame):
 
         if not metadata:
             #    self.var_3d.set(0)
-            self.var_degrees.set(1073741823)
-            self.var_layout.set("left-right")
+            self.char_degrees.set("180")
+            self.char_layout.set("left-right")
 
         if not audio_metadata:
             self.var_spatial_audio.set(0)
 
         if metadata:
-            metadata = next(metadata.values())
-            self.var_degrees.set(metadata.clip_left_right)
+            # metadata here is an dict with a sv3d box
+            metadata = metadata.values()[0]
+            if metadata.clip_left_right > 0 or metadata.projection == "mesh":
+                self.char_degrees.set("180")
+            else:
+                self.char_degrees.set("360")
+
+            if metadata.projection == "mesh":
+                self.char_format.set("fisheye")
+            elif metadata.projection == "equirectangular":
+                self.char_format.set("equi-rectangular")
+            else:
+                self.char_format.set(metadata.projection)
 
             """if metadata.get("Spherical", "") == "true":
                 self.var_spherical.set(1)
@@ -121,8 +130,8 @@ class Application(Frame):
             """
 
         if stereo:
-            stereo = next(stereo.values())
-            self.var_layout.set(stereo.stereo_mode_name());
+            stereo = stereo.values()[0]
+            self.char_layout.set(stereo.stereo_mode_name());
 
         if audio_metadata:
             self.var_spatial_audio.set(1)
@@ -131,13 +140,33 @@ class Application(Frame):
         self.update_state()
 
     def action_inject_delay(self):
-        stereo = self.var_layout
         
+        
+        stereo = self.char_layout.get()
+        spherical = self.char_format.get()
+        degrees = self.char_degrees.get()
+        
+        if spherical == "fisheye":
+            spherical = "mesh"
+            stereo = "left-right"
+            degrees = "180"
+        elif spherical == "equi-rectangular":
+            spherical = "equirectangular"
+        
+        if stereo == 'mono':
+            if degrees == "180":
+                stereo = "left-right"
+            else:
+                stereo = "none"
+            
         metadata = metadata_utils.Metadata()
         
-        metadata.stereo = self.var_layout.get()
-        metadata.spherical = "equirectangular"
-        metadata.clip_left_right = self.var_degrees.get()
+        metadata.stereo = stereo
+        metadata.spherical = spherical
+        if degrees == "180":
+            metadata.clip_left_right = 1073741823
+        else:
+            metadata.clip_left_right = 0
 
         if self.var_spatial_audio.get():
             metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
@@ -226,7 +255,7 @@ class Application(Frame):
         row = row + 1
         column = 0
         self.label_message = Label(self)
-        self.label_message["text"] = "Click Open to open your 360 video."
+        self.label_message["text"] = "Click Open to open your video."
         self.label_message.grid(row=row, column=column, rowspan=1,
                                 columnspan=2, padx=PAD_X, pady=10, sticky=W)
 
@@ -234,7 +263,21 @@ class Application(Frame):
         separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
         separator.grid(columnspan=row, padx=PAD_X, pady=4, sticky=N+E+S+W)
 
+        # video format
+        row += 1
+        self.label_degrees = Label(self, anchor=W)
+        self.label_degrees["text"] = "My video is foramtted as...."
+        self.label_degrees.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+        column += 1
+        
+        self.char_format = StringVar()
+        self.char_format.set("equi-rectangular")
+        self.format_menu = OptionMenu(self, self.char_format, "equi-rectangular", "fisheye", "full-frame", "cubemap")
+        self.format_menu.grid(row=row, column=column,  padx=PAD_X, pady=7, sticky=W)
+
+
         # 180 or 360
+        column = 0
         row += 1
         self.label_degrees = Label(self, anchor=W)
         self.label_degrees["text"] = "My video is 180 or 360 degree..."
@@ -242,23 +285,17 @@ class Application(Frame):
         column += 1
       
         self.var_degrees = IntVar()
-
-        Radiobutton(self,
-                    text="180",
-                    padx = 10,
-                    variable=self.var_degrees,
-                    value=1073741823).grid(row=row, column=column, padx=0, pady=0)
-
-        row += 1
-        Radiobutton(self,
-                    text="360",
-                    padx = 10,
-                    variable=self.var_degrees,
-                    value=0).grid(row=row, column=column, padx=0, pady=0)
-
-
-        self.var_degrees.set(1073741823)
         
+        
+        self.char_degrees = StringVar()
+        self.char_degrees.set(180)
+
+        self.degee_menu = OptionMenu(self, self.char_degrees, "180", "360")
+        self.degee_menu.grid(row=row, column=column,  padx=PAD_X, pady=7, sticky=W)
+        
+        """
+        self.var_degrees.set(1073741823)
+        """
         # video layout
         column = 0
         row += 1
@@ -267,49 +304,13 @@ class Application(Frame):
         self.label_layout.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
         column += 1
         
-        self.var_layout = StringVar()
         
-        Radiobutton(self,
-                    text="left-right",
-                    padx = 18,
-                    variable=self.var_layout,
-                    value="left-right").grid(row=row, column=column, padx=0, pady=0)
-            
-        row += 1
-        Radiobutton(self,
-                    text="top-bottom",
-                    padx = 10,
-                    variable=self.var_layout,
-                    value="top-bottom").grid(row=row, column=column, padx=0, pady=0)
+        self.char_layout = StringVar()
+        self.char_layout.set("left-right")
+    
+        self.degee_menu = OptionMenu(self, self.char_layout, "left-right", "top-bottom", "mono")
+        self.degee_menu.grid(row=row, column=column,  padx=PAD_X, pady=7, sticky=W)
 
-        self.var_layout.set("left-right")
-
-        """
-    # Spherical Checkbox
-    row += 1
-    self.label_spherical = Label(self, anchor=W)
-    self.label_spherical["text"] = "My video is spherical (180)"
-    self.label_spherical.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
-    column += 1
-    
-    self.var_spherical = IntVar()
-    self.checkbox_spherical = Checkbutton(self, variable=self.var_spherical)
-    self.checkbox_spherical["command"] = self.action_set_spherical
-    self.checkbox_spherical.grid(row=row, column=column, padx=PAD_X, pady=2)
-    
-    # 3D
-    row = row + 1
-    column = 0
-    self.label_3D = Label(self, anchor=W)
-    self.label_3D["text"] = "My video is stereoscopic 3D (top/bottom layout)"
-    self.label_3D.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
-    column += 1
-    
-    self.var_3d = IntVar()
-    self.checkbox_3D = Checkbutton(self, variable=self.var_3d)
-    self.checkbox_3D["command"] = self.action_set_3d
-    self.checkbox_3D.grid(row=row, column=column, padx=PAD_X, pady=2)
-        """
 
         # Spatial Audio Checkbox
         row += 1

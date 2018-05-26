@@ -119,7 +119,7 @@ class sv3dBox(box.Box):
         elif new_box.projection == "cubemap":
             new_box.content_size = 73 - new_box.header_size
             new_box.proj_size = 52
-        if new_box.projection == "mesh":
+        if new_box.projection == "mesh" or new_box.projection == "full-frame":
             new_box.projection_box = mesh_projection.mshpBox.create(metadata)
             new_box.proj_size = new_box.projection_box.content_size + new_box.projection_box.header_size + 8 + 24 # mesh projection, proj and  prhd boxes
             new_box.content_size = new_box.proj_size + 21 - new_box.header_size  # 21 is size of svhd & proj boxes
@@ -190,7 +190,7 @@ class sv3dBox(box.Box):
             out_fh.write(struct.pack(">I", 0))  # version+flags
             out_fh.write(struct.pack(">I", 0))  # layout
             out_fh.write(struct.pack(">I", 0))  # padding
-        elif self.projection == "mesh":
+        elif self.projection == "mesh" or self.projection == "full-frame":
             self.projection_box.save(in_fh, out_fh, delta)
 
 

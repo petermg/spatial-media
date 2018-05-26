@@ -323,16 +323,21 @@ class meshBox(box.Box):
         new_box.name = 'mesh'
         new_box.projection = metadata.spherical
         
-        if metadata.stereo == 'none':
-            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction))
-            new_box.meshes = 1
-        elif metadata.stereo == 'top-botton':
-            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
-            new_box.meshes = 2
+        if new_box.projection == "full-frame":
+            if metadata.stereo == 'none':
+                new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
+                new_box.meshes = 1
+            else:
+                new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
+                new_box.meshes = 2
         else:
-            new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
-            new_box.meshes = 2
-            # new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
+            if metadata.stereo == 'none':
+                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction))
+                new_box.meshes = 1
+            else:
+                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
+                new_box.meshes = 2
+                # new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
 
         return new_box
 
