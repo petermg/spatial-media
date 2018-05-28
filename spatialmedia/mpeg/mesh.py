@@ -301,7 +301,7 @@ def get_uv(x,y,z, u_min, u_scale, v_min, v_scale, fisheye_correction):
     phi = math.atan2(y,x)
 
     # test lens correction
-    nr = (fisheye_correction[0]*r) - (fisheye_correction[1] * r * r) + (fisheye_correction[2] * r * r * r) + (fisheye_correction[3] * r * r * r * r)
+    nr = r + (fisheye_correction[0]*r) - (fisheye_correction[1] * r * r) + (fisheye_correction[2] * r * r * r) + (fisheye_correction[3] * r * r * r * r)
 
     u = nr * math.cos(phi) + 0.5
     v = nr * math.sin(phi) + 0.5

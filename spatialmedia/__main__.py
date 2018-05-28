@@ -107,7 +107,7 @@ def main():
        action="store",
        dest="fisheye_correction",
        metavar="FISHEYE-CORRECTION",
-       default="1:0:0:0",
+       default="0:0:0:0",
        help="polynomial fisheye lens correction (n1:n2:n3:n4) e.g 0.5:-0.1:0.2:-0.0005")
        
   audio_group = parser.add_argument_group("Spatial Audio")
