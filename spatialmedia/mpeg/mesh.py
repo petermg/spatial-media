@@ -82,15 +82,15 @@ def load(fh, position=None, end=None):
     
     new_box.coordinates = struct.unpack(">{0}f".format(new_box.coordinate_count), fh.read(4*new_box.coordinate_count))
     
-    #    print new_box.coordinates
+    #    print (new_box.coordinates)
 
     ccsb =  int(math.ceil(math.log(new_box.coordinate_count * 2, 2.0)))
 
     new_box.vertex_count = struct.unpack(">I", fh.read(4))[0]
 
-    print "coordinate_count:{0}".format(new_box.coordinate_count);
-    print "vertex_count:{0}".format(new_box.vertex_count);
-    print "ccsb:{0}".format(ccsb);
+    print ("coordinate_count:{}".format(new_box.coordinate_count))
+    print ("vertex_count:{}".format(new_box.vertex_count))
+    print ("ccsb:{1}".format(ccsb))
 
     """
        vertex_buffer = fh.read(5*ccsb*new_box.vertex_count);
@@ -103,7 +103,7 @@ def load(fh, position=None, end=None):
     """ read in bits, ccsb bits at a time """
     for vertex_loop in range(new_box.vertex_count):
         tmp = {'x': bit_read.readbits(ccsb), 'y':bit_read.readbits(ccsb),'z':bit_read.readbits(ccsb), 'u':bit_read.readbits(ccsb), 'v':bit_read.readbits(ccsb) }
-        print tmp
+        # print (tmp)
         new_box.vertex_buffer.append ( tmp )
 
     new_box.vertex_list_count = struct.unpack(">I", fh.read(4))[0]
@@ -219,7 +219,7 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
     triangles = []
     triangle_list = []
     
-    print fisheye_correction
+    # print (fisheye_correction)
 
     point_count = grid+1;
 
@@ -249,7 +249,7 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
             
             tmp = get_uv (x/mag,y/mag,z/mag, u_min, u_scale, v_min, v_scale, fisheye_correction)
 
-#            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1])
+#            print( "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1]))
             
             coordinates.extend(tmp)
             
@@ -280,6 +280,7 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
             j = col_index + ((row_index + 1)* point_count)
             strip.extend([i, j])
         if row_index < grid -1:
+            # degenerate
             j = ((row_index + 1) * point_count)
             i = grid + ((row_index + 1) * point_count)
             strip.extend([i, j])
@@ -287,7 +288,7 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
     triangles.append ({'txt': 0, 'type': 1, 'count': len(strip), 'list':strip})
 
 
-#    print triangles
+#    print (triangles)
 
     """
         encode the indices
@@ -325,10 +326,10 @@ class meshBox(box.Box):
         
         if new_box.projection == "full-frame":
             if metadata.stereo == 'none':
-                new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
+                new_box.contents = new_box.process_mesh(gen_flat_mesh(43, 3 , 4.8, 2.7))
                 new_box.meshes = 1
             else:
-                new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
+                new_box.contents = new_box.process_mesh(gen_flat_mesh(43, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(43, 3 , 4.8, 2.7))
                 new_box.meshes = 2
         else:
             if metadata.stereo == 'none':
@@ -371,7 +372,7 @@ class meshBox(box.Box):
                 index count x ceil(log2(coordinate_count * 2)) encoded index
                 0-7 bits padding to get to byte boundary )
         """
-        lfh = io.BytesIO('')
+        lfh = io.BytesIO(b'')
         
         coords = mesh_details['coordinates']
         num_coords = len(coords)
@@ -381,7 +382,7 @@ class meshBox(box.Box):
         lfh.write(struct.pack(">{0}f".format(num_coords), *coords))
         
         vertices = mesh_details['vertices']
-        num_vertices = len(vertices) / 5;
+        num_vertices = int(len(vertices) / 5);
         
         lfh.write(struct.pack(">I", num_vertices))
         
