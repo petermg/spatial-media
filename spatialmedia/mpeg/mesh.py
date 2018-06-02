@@ -207,6 +207,117 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
     return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
 
 
+def gen_mesh_flexible(grid, radius, x_scale, y_scale, fisheye_correction):
+    """
+        Create a hemi-sphere.
+        top and bottom are triangle fans joined at the pole
+        Rest is a grid of triangle strips.
+        
+        """
+    coordinates = []
+    vertices = []
+    triangles = []
+    triangle_list = []
+    
+    if x_scale > y_scale:
+        y_scale = y_scale / x_scale
+        x_scale = 1.0
+    else:
+        x_scale = x_scale / y_scale
+        y_scale = 1.0
+
+    # print (fisheye_correction)
+    
+    point_count = grid+1;
+    
+    theta_delta_grid = (math.pi * x_scale) / grid
+    phi_delta_grid = (math.pi * y_scale) / grid
+
+    theta_delta_uv = math.pi / grid
+    phi_delta_uv = math.pi / grid
+    
+    print ("x: {0} , y: {1}".format(x_scale, y_scale))
+    print ("grid: {0} , uv: {1}".format(theta_delta_grid, theta_delta_uv))
+    phi_grid = -(math.pi/ 2.0) +  (((1.0 - y_scale) * 0.5) * math.pi)
+    phi_uv = -(math.pi/ 2.0)
+
+    coord_index = 0
+    
+    for phi_index in range(0,point_count):
+        
+        theta_uv = math.pi
+        theta_grid = math.pi  +  (((1.0 - x_scale) * 0.5) * math.pi)
+
+        for theta_index in range(0,point_count):
+            
+            
+            
+            x = radius * math.cos(phi_grid) * math.cos(theta_grid)
+            z = radius * math.cos(phi_grid) * math.sin(theta_grid)
+            y = radius * math.sin(phi_grid)
+            
+            coordinates.append (x)
+            coordinates.append (y)
+            coordinates.append (z)
+            
+            x = radius * math.cos(phi_uv) * math.cos(theta_uv)
+            z = radius * math.cos(phi_uv) * math.sin(theta_uv)
+            y = radius * math.sin(phi_uv)
+
+            mag = math.sqrt((x*x)+(y*y)+(z*z));
+            
+            tmp = get_uv (x/mag,y/mag,z/mag, 0.0, 1.0, 0.0, 1.0, fisheye_correction)
+            
+            #            print( "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1]))
+            
+            coordinates.extend(tmp)
+            
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            
+            theta_uv += theta_delta_uv
+            theta_grid += theta_delta_grid
+
+        phi_uv += phi_delta_uv
+        phi_grid += phi_delta_grid
+
+    
+    """
+    generate triangles / triangles are counter-clockwise
+    """
+    
+    strip = []
+    
+    for row_index in range(0, grid):
+        for col_index in range(0, point_count):
+            i = col_index + (row_index * point_count)
+            j = col_index + ((row_index + 1)* point_count)
+            strip.extend([i, j])
+        if row_index < grid -1:
+            # degenerate
+            j = ((row_index + 1) * point_count)
+            i = grid + ((row_index + 1) * point_count)
+            strip.extend([i, j])
+
+    triangles.append ({'txt': 0, 'type': 1, 'count': len(strip), 'list':strip})
+
+
+#    print (triangles)
+
+    """
+    encode the indices
+    """
+    return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
+
+
 def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
     """
         Create a hemi-sphere.
@@ -333,12 +444,12 @@ class meshBox(box.Box):
                 new_box.meshes = 2
         else:
             if metadata.stereo == 'none':
-                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction))
+                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1.0, 0.0, 0.1, metadata.fisheye_correction))
                 new_box.meshes = 1
             else:
+                #new_box.contents = new_box.process_mesh(gen_mesh_flexible(39, 1.0, 16.0, 9.0, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh_flexible(39, 1.0, 16.0, 9.0, metadata.fisheye_correction))
                 new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
                 new_box.meshes = 2
-                # new_box.contents = new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(39, 3 , 4.8, 2.7))
 
         return new_box
 
