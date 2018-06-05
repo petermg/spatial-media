@@ -2,13 +2,10 @@ This fork is designed to fake googles VR180 camera metadata.
 
 It uses Spherical Video V2 metadata and gives a choice between Mesh Projection for fisheye videos
 or equi-rectangular projection with the left and right crop set to 1073741823 which is 0x3FFFFFFF or 1/4 of 0xFFFFFFFF.
+It can also be used to display full frame SBS 3D video (ala 3D movies) in Youtube using VR180 compatibility
+with some limitation without requiring a re-encode to fisheye or equirectangular.
 
-Note Google may decide to break this as they do not seem to be interested in telling people how to do this. 
-
-It should now have have a working gui and should work again with 360 degree videos using the -d or --degree arguements.
-
-To use it you need a copy of python 2.7 (I've not tried it with 3.x)  and use the command line or GUI.
-It seems to work with top bottom and side by side layouts.
+To use it you need a copy of python 2.7 or 3.6  and use the command line or GUI.
 
 Typical usage:
 
@@ -29,7 +26,24 @@ or alternatively
 cd spatialmedia
 python gui.py
 
-to use the simple GUI. Note the GUI does not currently support Mesh Projection
+to use the simple GUI. Note on the GUI mesh is called fisheye after the eye of video it works with.
+
+Please note that nearly all the options mesh and equirectangular options will create the correct metadata
+(the exeception being -m mesh will ignore --degree=360) but not all the options are accepted by Youtube.
+
+As of 5th, June 2018 Youtube will accept...
+
+-m equirectangular with all options except the combination of 180 degree and mono.
+-m mesh is restricted to stereo 3D at 180 degree
+-m full-frame is targeted at 16x9 video at the moment and Youtube probably don't support it, it just happens to work.
+
+
+So mesh is restrict to 180 degree 3D videos in a 1:1 ratio.
+equirectangular will work for all 360 formats but 180 degree videos have to have stereo image pairs.
+
+There is no way to to mono 180 without resorting to SBS or OU stereo image pairs with the same 
+image duplicated in the frame.
+
 
 
 This is basically kodabb/spatial-media sphericaltoolsv2 branch with some hacking around
