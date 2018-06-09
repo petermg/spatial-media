@@ -121,6 +121,30 @@ class Mpeg4Container(container.Container):
           out_fh: file handle, destination file hand for saved file.
         """
         self.resize()
+        
+        """
+            reorder to put the mdat element at the end
+        """
+        
+        
+        mdat_index = 0
+        moov_index = 0
+        
+        
+        for element in self.contents:
+            if element.name == constants.TAG_MDAT:
+                break
+            mdat_index+=1
+                
+        self.contents.append(self.contents.pop(mdat_index))
+
+        for element in self.contents:
+            if element.name == constants.TAG_MOOV:
+                    break
+            moov_index+=1
+
+        self.contents.insert(1, self.contents.pop(mdat_index))
+
         new_position = 0
         for element in self.contents:
             if element.name == constants.TAG_MDAT:
@@ -130,4 +154,5 @@ class Mpeg4Container(container.Container):
         delta = new_position - self.first_mdat_position
 
         for element in self.contents:
+            print (element.name)
             element.save(in_fh, out_fh, delta)
