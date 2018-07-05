@@ -90,7 +90,7 @@ def load(fh, position=None, end=None):
 
     print ("coordinate_count:{}".format(new_box.coordinate_count))
     print ("vertex_count:{}".format(new_box.vertex_count))
-    print ("ccsb:{1}".format(ccsb))
+    print ("ccsb:{0}".format(ccsb))
 
     """
        vertex_buffer = fh.read(5*ccsb*new_box.vertex_count);
@@ -448,7 +448,7 @@ class meshBox(box.Box):
                 new_box.meshes = 1
             else:
                 #new_box.contents = new_box.process_mesh(gen_mesh_flexible(39, 1.0, 16.0, 9.0, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh_flexible(39, 1.0, 16.0, 9.0, metadata.fisheye_correction))
-                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
+                new_box.contents = new_box.process_mesh(gen_mesh(43, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(43, 1, 0, 1, 0, 1, metadata.fisheye_correction))
                 new_box.meshes = 2
 
         return new_box
