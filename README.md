@@ -33,24 +33,23 @@ or alternatively
 cd spatialmedia
 python gui.py
 
-to use the simple GUI. Note on the GUI mesh is called fisheye after the eye of video it works with.
+to use the simple GUI. Note on the GUI mesh is called fisheye after the style of video it works with.
 
-Please note that nearly all the options mesh and equirectangular options will create the correct metadata
+Please note that nearly all the mesh and equirectangular options will create the correct metadata
 (the exeception being -m mesh will ignore --degree=360) but not all the options are accepted by Youtube.
 
 As of 5th, June 2018 Youtube will accept...
 
 -m equirectangular with all options except the combination of 180 degree and mono.
--m mesh is restricted to stereo 3D at 180 degree
+-m mesh is restricted to stereo 3D at 180 degrees
 -m full-frame is targeted at 16x9 video at the moment and Youtube probably don't support it, it just happens to work.
 
 
-So mesh is restrict to 180 degree 3D videos in a 1:1 ratio.
-equirectangular will work for all 360 formats but 180 degree videos have to have stereo image pairs.
+So mesh is restricted to 180 degree 3D videos in a 1:1 ratio.
+Equirectangular will work for all 360 formats but 180 degree videos have to have stereo image pairs.
 
-There is no way to to mono 180 without resorting to SBS or OU stereo image pairs with the same 
+There is no way to do mono 180 without resorting to SBS or OU stereo image pairs with the same 
 image duplicated in the frame.
-
 
 
 This is basically kodabb/spatial-media sphericaltoolsv2 branch with some hacking around
