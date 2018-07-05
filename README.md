@@ -1,5 +1,8 @@
 This fork is designed to fake googles VR180 camera metadata.
 
+Please download using the 'Clone or download' button, the releases have been inherited from the original Google repository
+and do not work for VR180.
+
 It uses Spherical Video V2 metadata and gives a choice between Mesh Projection for fisheye videos
 or equi-rectangular projection with the left and right crop set to 1073741823 which is 0x3FFFFFFF or 1/4 of 0xFFFFFFFF.
 It can also be used to display full frame SBS 3D video (ala 3D movies) in Youtube using VR180 compatibility
@@ -18,6 +21,10 @@ python spatialmedia -i -s top-bottom -m equirectangular Test_180_3D.mp4 Test_STV
 or
 
 python spatialmedia -i -s left-right -m mesh Test_180_3D.mp4 Test_STV2_180_3D.mp4
+
+or
+
+python spatialmedia -i -s left-right -m full-frame Test_sbs_ff_3D.mp4 Test_STV2_ff_3D.mp4
 
 This will take the first file, inject the metadata and write the result out to the second file.
 
