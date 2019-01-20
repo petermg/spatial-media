@@ -26,6 +26,10 @@ or
 
 python spatialmedia -i -s left-right -m full-frame Test_sbs_ff_3D.mp4 Test_STV2_ff_3D.mp4
 
+or
+
+python spatialmedia -i -s left-right -m equi-mesh Test_Equi-180_3D.mp4 Test_STV2_VR180_3D.mp4
+
 This will take the first file, inject the metadata and write the result out to the second file.
 
 or alternatively
@@ -36,14 +40,16 @@ python gui.py
 to use the simple GUI. Note on the GUI mesh is called fisheye after the style of video it works with.
 
 Please note that nearly all the mesh and equirectangular options will create the correct metadata
-(the exeception being -m mesh will ignore --degree=360) but not all the options are accepted by Youtube.
+(the exeception being -m mesh will ignore --degree=360 and field of view (-v) is only supported 
+by equi-mesh as the field of view and full-frame as the image ratio ) 
+but not all the options are accepted by Youtube.
 
 As of 5th, June 2018 Youtube will accept...
 
 -m equirectangular with all options except the combination of 180 degree and mono.
 -m mesh is restricted to stereo 3D at 180 degrees
--m full-frame is targeted at 16x9 video at the moment and Youtube probably don't support it, it just happens to work.
-
+-m full-frame Youtube probably don't support it, it just happens to work.
+-m equi-mesh This is just VR180 using a slice of the hemi-spherei mesh. Getty's VR180 videos use something similar. 
 
 So mesh is restricted to 180 degree 3D videos in a 1:1 ratio.
 Equirectangular will work for all 360 formats but 180 degree videos have to have stereo image pairs.
@@ -55,7 +61,7 @@ image duplicated in the frame.
 This is basically kodabb/spatial-media sphericaltoolsv2 branch with some hacking around
 merged into master so anyone wanting to use this doesn't have to play around with branches.
 
-THe original readme details below.
+The original readme details below.
 
 # Spatial Media
 
