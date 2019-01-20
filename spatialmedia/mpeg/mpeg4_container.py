@@ -154,5 +154,4 @@ class Mpeg4Container(container.Container):
         delta = new_position - self.first_mdat_position
 
         for element in self.contents:
-            print (element.name)
             element.save(in_fh, out_fh, delta)

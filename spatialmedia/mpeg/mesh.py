@@ -82,15 +82,15 @@ def load(fh, position=None, end=None):
     
     new_box.coordinates = struct.unpack(">{0}f".format(new_box.coordinate_count), fh.read(4*new_box.coordinate_count))
     
-    #    print (new_box.coordinates)
+    # print (new_box.coordinates)
 
     ccsb =  int(math.ceil(math.log(new_box.coordinate_count * 2, 2.0)))
 
     new_box.vertex_count = struct.unpack(">I", fh.read(4))[0]
 
-    print ("coordinate_count:{}".format(new_box.coordinate_count))
-    print ("vertex_count:{}".format(new_box.vertex_count))
-    print ("ccsb:{0}".format(ccsb))
+    # print ("coordinate_count:{}".format(new_box.coordinate_count))
+    # print ("vertex_count:{}".format(new_box.vertex_count))
+    # print ("ccsb:{0}".format(ccsb))
 
     """
        vertex_buffer = fh.read(5*ccsb*new_box.vertex_count);
@@ -110,8 +110,8 @@ def load(fh, position=None, end=None):
     ccsb =  int(math.ceil(math.log(new_box.vertex_count * 2, 2.0)))
 
 
-#    print "vertex_list_count:{0}".format(new_box.vertex_list_count);
-#    print "ccsb:{0}".format(ccsb);
+    # print ("vertex_list_count:{0}".format(new_box.vertex_list_count));
+    # print ("ccsb:{0}".format(ccsb));
 
     new_box.vertex_list = []
     bit_read2 = bitwiseio.BitReader(fh)
@@ -122,10 +122,20 @@ def load(fh, position=None, end=None):
         index_type = fh.read(1)
         index_count = struct.unpack(">I", fh.read(4))[0]
         index_as_delta = []
+
+        # print ("texture_id:{0}".format(texture_id));
+        # print ("index_type:{0}".format(index_type));
+
+        # print ("index_count:{0}".format(index_count));
+
+        
         for y in range(index_count):
             index_as_delta.append(bit_read2.readbits(ccsb))
         tmp = {'txt':texture_id, 'type':index_type, 'count':index_count, 'strip':index_as_delta}
         new_box.vertex_list.append (tmp)
+        # print ("tmp:{0}".format(tmp));
+
+    # print ("new_box:{0}".format(new_box));
 
     return new_box
 
@@ -143,7 +153,17 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
     triangles = []
     triangle_list = []
     
-    point_count = grid+1;
+    point_count = grid+1
+
+    if x_scale > y_scale :
+        scale_value = 4.0 / x_scale
+        x_scale *= scale_value
+        y_scale *= scale_value
+    else :
+        scale_value = 4.0 / y_scale
+        x_scale *= scale_value
+        y_scale *= scale_value
+
     x_offset = x_scale / 2
     y_offset = y_scale / 2
 
@@ -165,7 +185,7 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
             coordinates.append (u)
             coordinates.append (v)
             
-            #            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z,u, v)
+            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z,u, v)
             
             
             vertices.append(coord_index)
@@ -207,7 +227,7 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
     return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
 
 
-def gen_mesh_flexible(grid, radius, x_scale, y_scale, fisheye_correction):
+def gen_mesh_flexible(grid, radius, x_scale, y_scale, fisheye_correction, uv_function):
     """
         Create a hemi-sphere.
         top and bottom are triangle fans joined at the pole
@@ -266,7 +286,7 @@ def gen_mesh_flexible(grid, radius, x_scale, y_scale, fisheye_correction):
 
             mag = math.sqrt((x*x)+(y*y)+(z*z));
             
-            tmp = get_uv (x/mag,y/mag,z/mag, 0.0, 1.0, 0.0, 1.0, fisheye_correction)
+            tmp = uv_function (x/mag,y/mag,z/mag, 0.0, 1.0, 0.0, 1.0, fisheye_correction)
             
             #            print( "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1]))
             
@@ -317,8 +337,95 @@ def gen_mesh_flexible(grid, radius, x_scale, y_scale, fisheye_correction):
     """
     return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
 
-
 def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
+    """
+        Create a hemi-sphere.
+        top and bottom are triangle fans joined at the pole
+        Rest is a grid of triangle strips.
+        
+        """
+    coordinates = []
+    vertices = []
+    triangles = []
+    triangle_list = []
+    
+    # print (fisheye_correction)
+    
+    point_count = grid+1;
+    
+    
+    theta_delta = math.pi / grid
+    phi_delta = math.pi / grid
+    
+    
+    
+    phi = -(math.pi/ 2.0)
+    coord_index = 0
+    
+    for phi_index in range(0,point_count):
+        
+        theta = math.pi
+        
+        for theta_index in range(0,point_count):
+            
+            x = radius * math.cos(phi) * math.cos(theta)
+            z = radius * math.cos(phi) * math.sin(theta)
+            y = radius * math.sin(phi)
+            coordinates.append (x)
+            coordinates.append (y)
+            coordinates.append (z)
+            
+            mag = math.sqrt((x*x)+(y*y)+(z*z));
+            
+            tmp = get_uv (x/mag,y/mag,z/mag, u_min, u_scale, v_min, v_scale, fisheye_correction)
+            
+            print( "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1]))
+            
+            coordinates.extend(tmp)
+            
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            
+            theta += theta_delta
+        phi += phi_delta
+    
+    
+    """
+        generate triangles / triangles are counter-clockwise
+        """
+    
+    strip = []
+    
+    for row_index in range(0, grid):
+        for col_index in range(0, point_count):
+            i = col_index + (row_index * point_count)
+            j = col_index + ((row_index + 1)* point_count)
+            strip.extend([i, j])
+        if row_index < grid -1:
+            # degenerate
+            j = ((row_index + 1) * point_count)
+            i = grid + ((row_index + 1) * point_count)
+            strip.extend([i, j])
+
+    triangles.append ({'txt': 0, 'type': 1, 'count': len(strip), 'list':strip})
+
+
+#    print (triangles)
+
+    """
+    encode the indices
+    """
+    return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
+
+def gen_mesh_eq(grid, radius, fisheye_correction):
     """
         Create a hemi-sphere.
         top and bottom are triangle fans joined at the pole
@@ -338,14 +445,18 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
     theta_delta = math.pi / grid
     phi_delta = math.pi / grid
     
+    u_delta = 1.0 / grid;
+    v_delta = 1.0 / grid;
 
     
     phi = -(math.pi/ 2.0)
     coord_index = 0
 
+    v = 0.0;
     for phi_index in range(0,point_count):
 
         theta = math.pi
+        u = 0.0;
 
         for theta_index in range(0,point_count):
 
@@ -355,15 +466,32 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
             coordinates.append (x)
             coordinates.append (y)
             coordinates.append (z)
-            
-            mag = math.sqrt((x*x)+(y*y)+(z*z));
-            
-            tmp = get_uv (x/mag,y/mag,z/mag, u_min, u_scale, v_min, v_scale, fisheye_correction)
 
-#            print( "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z, tmp[0], tmp [1]))
+            absu =  math.fabs(u-0.5)
+            adju = 0.9 * (absu*absu) + (0.5 * absu)
+
+            if u < 0.5 :
+                adju = 0.5 - adju
+            else :
+                adju = 0.5 + adju
+
+            absv =  math.fabs(v-0.5)
+            adjv = (0.9 * (absv*absv)) + (0.5 * absv)
+
+            if v < 0.5 :
+                adjv = 0.5 - adjv
+            else :
+                adjv = 0.5 + adjv
+
+            coordinates.append(u)
+            coordinates.append(v)
+            #coordinates.append(adju)
+            #coordinates.append(adjv)
             
-            coordinates.extend(tmp)
             
+
+            print( "x {0}, y {1}, z {2}, u {3}, v {4}".format(x,y,z, u, v))
+
             vertices.append(coord_index)
             coord_index += 1
             vertices.append(coord_index)
@@ -376,7 +504,10 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
             coord_index += 1
 
             theta += theta_delta
+            u += u_delta
+        
         phi += phi_delta
+        v += v_delta
 
 
     """
@@ -403,6 +534,103 @@ def gen_mesh(grid, radius, u_min, u_scale, v_min, v_scale, fisheye_correction):
 
     """
         encode the indices
+    """
+    return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
+
+def gen_mesh_fov(grid, radius, fov_x, fov_y):
+    """
+        Create a hemi-sphere.
+        top and bottom are triangle fans joined at the pole
+        Rest is a grid of triangle strips.
+        
+    """
+    coordinates = []
+    vertices = []
+    triangles = []
+    triangle_list = []
+    
+    point_count = grid+1;
+    
+    fov_ratio_theta = fov_x / 180.0
+    fov_start_theta = (180.0 - fov_x) * 0.5 * math.pi / 180.0;
+    # print (fov_ratio_theta) 
+    # print (fov_start_theta) 
+    
+    theta_delta = (math.pi * fov_ratio_theta) / grid
+
+    fov_ratio_phi = fov_y / 180.0
+    fov_start_phi = (180.0 - fov_y) * 0.5 * math.pi / 180.0;
+    # print (fov_ratio_phi) 
+    # print (fov_start_phi) 
+    
+    phi_delta = (math.pi * fov_ratio_phi) / grid
+    
+    u_delta = 1.0 / grid
+    v_delta = 1.0 / grid
+ 
+    phi = -(math.pi/ 2.0) + fov_start_phi 
+    coord_index = 0
+   
+    v = 0; 
+    for phi_index in range(0,point_count):
+        
+        theta = math.pi + fov_start_theta
+        u = 0
+        
+        for theta_index in range(0,point_count):
+            
+            x = radius * math.cos(phi) * math.cos(theta)
+            z = radius * math.cos(phi) * math.sin(theta)
+            y = radius * math.sin(phi)
+            coordinates.append (x)
+            coordinates.append (y)
+            coordinates.append (z)
+            coordinates.append (u)
+            coordinates.append (v)
+            
+            # print( "x {0}, y {1}, z {2}, u {3}, v {4}".format(x,y,z, u, v))
+            
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            vertices.append(coord_index)
+            coord_index += 1
+            
+            theta += theta_delta
+            u += u_delta
+ 
+        phi += phi_delta
+        v += v_delta 
+    
+    """
+        generate triangles / triangles are counter-clockwise
+    """
+    
+    strip = []
+    
+    for row_index in range(0, grid):
+        for col_index in range(0, point_count):
+            i = col_index + (row_index * point_count)
+            j = col_index + ((row_index + 1)* point_count)
+            strip.extend([i, j])
+        if row_index < grid -1:
+            # degenerate
+            j = ((row_index + 1) * point_count)
+            i = grid + ((row_index + 1) * point_count)
+            strip.extend([i, j])
+
+    triangles.append ({'txt': 0, 'type': 1, 'count': len(strip), 'list':strip})
+
+
+#    print (triangles)
+
+    """
+    encode the indices
     """
     return { 'coordinates':coordinates, 'vertices':vertices, 'triangles':triangles}
 
@@ -437,18 +665,33 @@ class meshBox(box.Box):
         
         if new_box.projection == "full-frame":
             if metadata.stereo == 'none':
-                new_box.contents = new_box.process_mesh(gen_flat_mesh(43, 3 , 4.8, 2.7))
+                new_box.contents = new_box.process_mesh(gen_flat_mesh(43, 3 , metadata.fov[0], metadata.fov[1]))
                 new_box.meshes = 1
             else:
-                new_box.contents = new_box.process_mesh(gen_flat_mesh(43, 3 , 4.8, 2.7)) + new_box.process_mesh(gen_flat_mesh(43, 3 , 4.8, 2.7))
+                new_box.contents = new_box.process_mesh(gen_flat_mesh(43, 3 , metadata.fov[0], metadata.fov[1])) + new_box.process_mesh(gen_flat_mesh(43, 3 , metadata.fov[0], metadata.fov[1]))
+                new_box.meshes = 2
+        elif new_box.projection == "equi-mesh":
+            if metadata.stereo == 'none':
+                new_box.contents = new_box.process_mesh(gen_mesh_fov(39, 1, metadata.fov[0], metadata.fov[1]))
+                new_box.meshes = 1
+            else:
+                
+                # equi_fov test 
+                new_box.contents = new_box.process_mesh(gen_mesh_fov(39, 1, metadata.fov[0], metadata.fov[1])) + new_box.process_mesh(gen_mesh_fov(39, 1, metadata.fov[0], metadata.fov[1]))
+                
                 new_box.meshes = 2
         else:
             if metadata.stereo == 'none':
                 new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1.0, 0.0, 0.1, metadata.fisheye_correction))
                 new_box.meshes = 1
             else:
-                #new_box.contents = new_box.process_mesh(gen_mesh_flexible(39, 1.0, 16.0, 9.0, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh_flexible(39, 1.0, 16.0, 9.0, metadata.fisheye_correction))
-                new_box.contents = new_box.process_mesh(gen_mesh(43, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(43, 1, 0, 1, 0, 1, metadata.fisheye_correction))
+                # new_box.contents = new_box.process_mesh(gen_mesh_flexible(39, 1.0, 1.0, 1.0, metadata.fisheye_corection)) + new_box.process_mesh(gen_mesh_flexible(39, 1.0, 16.0, 9.0, metadata.fisheye_correction))
+                
+                # eqiurect test
+                # new_box.contents = new_box.process_mesh(gen_mesh_eq(39, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh_eq(39, 1, metadata.fisheye_correction))
+
+                # actual VR180 code.
+                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
                 new_box.meshes = 2
 
         return new_box
@@ -528,6 +771,10 @@ class meshBox(box.Box):
         for strip in tri_lists:
             face_indices = strip['list']
             count = strip['count']
+            
+            # print ("count:{0}".format(count))
+
+            
             lfh.write(struct.pack(">B", strip['txt']))
             lfh.write(struct.pack(">B", strip['type']))
             lfh.write(struct.pack(">I", strip['count']))

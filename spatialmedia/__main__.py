@@ -65,9 +65,9 @@ def main():
       action="store",
       dest="projection",
       metavar="SPHERICAL-MODE",
-      choices=["equirectangular", "cubemap", "mesh", "full-frame"],
+      choices=["equirectangular", "cubemap", "mesh", "full-frame", "equi-mesh"],
       default=None,
-      help="projection (equirectangular | cubemap | mesh | full-frame)")
+      help="projection (equirectangular | cubemap | mesh | full-frame | equi-mesh)")
   video_group.add_argument(
       "-y",
       "--yaw",
@@ -109,6 +109,14 @@ def main():
        metavar="FISHEYE-CORRECTION",
        default="0:0:0:0",
        help="polynomial fisheye lens correction (n1:n2:n3:n4) e.g 0.5:-0.1:0.2:-0.0005")
+  video_group.add_argument(
+       "-v",
+       "--view",
+       action="store",
+       dest="field_of_view",
+       metavar="FIELD-OF-VIEW",
+       default="0x0",
+       help="Field of view for equi_mesh or full frame. e.g. 180x180 or 16x9")
        
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
@@ -135,13 +143,24 @@ def main():
     if args.projection:
       metadata.spherical = args.projection
       if metadata.spherical == "equirectangular":
-          metadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
+          metdaadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
 
     if args.spatial_audio:
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
 
     if args.fisheye_correction:
         metadata.fisheye_correction = [float(x) for x in args.fisheye_correction.split(':')]
+
+    if args.field_of_view:
+      metadata.fov = [float(x) for x in args.field_of_view.split('x')]
+      if metadata.fov[0] == 0 or metadata.fov[1] == 0 :
+        if args.projection == "full-frame" :
+           metadata.fov[0] = 16.0
+           metadata.fov[1] = 9.0       
+        else :
+           metadata.fov[0] = 180 
+           metadata.fov[1] = 180;       
+
 
     if metadata.stereo or metadata.spherical or metadata.audio:
       metadata.orientation = {"yaw": args.yaw, "pitch": args.pitch, "roll": args.roll}
