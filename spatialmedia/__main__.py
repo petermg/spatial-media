@@ -146,7 +146,19 @@ def main():
           metdaadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
 
     if args.spatial_audio:
-      metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
+      parsed_metadata = metadata_utils.parse_metadata(args.file[0], console)
+      if not metadata.audio:
+        spatial_audio_description = metadata_utils.get_spatial_audio_description(
+            parsed_metadata.num_audio_channels)
+        if spatial_audio_description.is_supported:
+          metadata.audio = metadata_utils.get_spatial_audio_metadata(
+              spatial_audio_description.order,
+              spatial_audio_description.has_head_locked_stereo)
+        else:
+          console("Audio has %d channel(s) and is not a supported "
+                  "spatial audio format." % (parsed_metadata.num_audio_channels))
+          return
+
 
     if args.fisheye_correction:
         metadata.fisheye_correction = [float(x) for x in args.fisheye_correction.split(':')]
@@ -172,6 +184,10 @@ def main():
 
   if len(args.file) > 0:
     for input_file in args.file:
+      if args.spatial_audio:
+        parsed_metadata = metadata_utils.parse_metadata(input_file, console)
+        metadata.audio = metadata_utils.get_spatial_audio_description(
+            parsed_metadata.num_channels)
       metadata_utils.parse_metadata(input_file, console)
     return
 
