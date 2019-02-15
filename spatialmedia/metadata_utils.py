@@ -528,6 +528,7 @@ def get_aac_num_channels(box, in_fh):
             return -1
         channel_configuration = (int("0078", 16) & decoder_descriptor) >> 3
     in_fh.seek(p)
+    # print("channel_configuration", channel_configuration)
     return channel_configuration
 
 

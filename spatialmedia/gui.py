@@ -98,6 +98,9 @@ class Application(Frame):
         self.spatial_audio_description = metadata_utils.get_spatial_audio_description(
 	            parsed_metadata.num_audio_channels)
 
+        print("self.spatial_audio_description", self.spatial_audio_description)
+        print("parsed_metadata.num_audio_channels", parsed_metadata.num_audio_channels)
+
         if not metadata:
             #    self.var_3d.set(0)
             self.char_degrees.set("180")
