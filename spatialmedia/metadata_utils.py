@@ -243,9 +243,22 @@ def inject_spatial_audio_atom(
                                    head_locked_stereo_msg)
                             console(err_msg)
                             return False
+
+                            
                         sa3d_atom = mpeg.SA3DBox.create(
                             num_channels, audio_metadata)
-                        sample_description.contents.append(sa3d_atom)
+
+                        old_atom_index = -1
+                            
+                        for idx, old_atom in enumerate(sample_description.contents):
+                            if old_atom.name == mpeg.constants.TAG_SA3D:
+                                old_atom_index = idx
+                        
+                        if old_atom_index > -1:
+                            sample_description.contents[old_atom_index] = sa3d_atom
+                        else:
+                            sample_description.contents.append(sa3d_atom)
+                            
     return True
 
 def parse_spherical_mpeg4(mpeg4_file, fh, console):
