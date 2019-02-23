@@ -185,7 +185,7 @@ def gen_flat_mesh(grid, z_dist, x_scale, y_scale):
             coordinates.append (u)
             coordinates.append (v)
             
-            print "x {0}, y {1}, z {2}, u {3}, v{4}".format(x,y,z,u, v)
+            # print ("x {0}, y {1}, z {2}, u {3}, v{4}").format(x,y,z,u, v)
             
             
             vertices.append(coord_index)

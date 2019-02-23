@@ -179,6 +179,9 @@ class Application(Frame):
               self.spatial_audio_description.order,
               self.spatial_audio_description.has_head_locked_stereo)
 
+        if spherical == "full-frame" :
+            metadata.fov = [16.0, 9.0]
+            
         console = Console()
     
         if metadata.stereo or metadata.spherical or metadata.audio:
@@ -247,11 +250,11 @@ class Application(Frame):
         self.button_inject.configure(state="normal")
 
         if self.spatial_audio_description.has_head_locked_stereo:
-	    self.label_spatial_audio.configure(
-	                text='{}\n{}'.format(
+            self.label_spatial_audio.configure(
+                        text='{}\n{}'.format(
 	                SPATIAL_AUDIO_LABEL, HEAD_LOCKED_STEREO_LABEL))
-	else:
-	    self.label_spatial_audio.configure(text=SPATIAL_AUDIO_LABEL)
+        else:
+            self.label_spatial_audio.configure(text=SPATIAL_AUDIO_LABEL)
 	
 
 
