@@ -35,6 +35,7 @@ This will take the first file, inject the metadata and write the result out to t
 or alternatively
 
 cd spatialmedia
+
 python gui.py
 
 to use the simple GUI. Note on the GUI mesh is called fisheye after the style of video it works with.
