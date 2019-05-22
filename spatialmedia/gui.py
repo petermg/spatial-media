@@ -111,7 +111,9 @@ class Application(Frame):
 
         if metadata:
             # metadata here is an dict with a sv3d box
-            metadata = metadata.values()[0]
+
+            print(metadata)
+            metadata = list(metadata.values())[0]
             if metadata.clip_left_right > 0 or metadata.projection == "mesh":
                 self.char_degrees.set("180")
             else:
@@ -136,7 +138,7 @@ class Application(Frame):
             """
 
         if stereo:
-            stereo = stereo.values()[0]
+            stereo = list(stereo.values())[0]
             self.char_layout.set(stereo.stereo_mode_name());
 
         if audio_metadata:
