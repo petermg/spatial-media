@@ -143,7 +143,7 @@ def main():
     if args.projection:
       metadata.spherical = args.projection
       if metadata.spherical == "equirectangular":
-          metdaadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
+          metadata.clip_left_right = 0 if args.degrees == "360" else 1073741823
 
     if args.spatial_audio:
       parsed_metadata = metadata_utils.parse_metadata(args.file[0], console)
