@@ -48,6 +48,13 @@ def main():
       help=
       "injects spatial media metadata into the first file specified (.mp4 or "
       ".mov) and saves the result to the second file specified")
+  parser.add_argument(
+      "-b",
+      "--show-atoms",
+      action="store_true",
+      help=
+      "Displays the atom layout for the movie. Note the MOV/MP4 format is not self-parsable"
+      " .e.g. there is no way to know the containts of a continer atom without documentation.")
 
   video_group = parser.add_argument_group("Spherical Video")
   video_group.add_argument(
@@ -117,7 +124,13 @@ def main():
        metavar="FIELD-OF-VIEW",
        default="0x0",
        help="Field of view for equi_mesh or full frame. e.g. 180x180 or 16x9")
-       
+  video_group.add_argument(
+      "-1",
+      "--force_v1_360_equi_metadata",
+      action="store_true",
+      help="Add v1 metadata as well as v2 metadata to the video." 
+      "only really valid for 360 equirectangular videos, but some video player only enable VR if they recognise v1 metadata")
+
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
       "-a",
@@ -173,14 +186,20 @@ def main():
            metadata.fov[0] = 180 
            metadata.fov[1] = 180;       
 
+    if args.force_v1_360_equi_metadata:
+      console("generating metadata.")
+      metadata.v1_xml = metadata_utils.generate_spherical_xml(args.stereo_mode)
+      console(metadata.v1_xml)
 
     if metadata.stereo or metadata.spherical or metadata.audio:
       metadata.orientation = {"yaw": args.yaw, "pitch": args.pitch, "roll": args.roll}
       metadata_utils.inject_metadata(args.file[0], args.file[1], metadata,
-                                     console)
+                                     console, args.force_v1_360_equi_metadata)
     else:
       console("Failed to generate metadata.")
     return
+
+
 
   if len(args.file) > 0:
     for input_file in args.file:
@@ -189,6 +208,8 @@ def main():
         metadata.audio = metadata_utils.get_spatial_audio_description(
             parsed_metadata.num_channels)
       metadata_utils.parse_metadata(input_file, console)
+      metadata_utils.show_atoms(input_file, console)
+      
     return
 
   parser.print_help()

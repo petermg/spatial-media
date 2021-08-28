@@ -25,6 +25,7 @@ import struct
 import traceback
 
 from spatialmedia import mpeg
+from spatialmedia import v1_metadata
 
 MPEG_FILE_EXTENSIONS = [".mp4", ".mov"]
 
@@ -37,6 +38,7 @@ class Metadata(object):
         self.audio = None
         self.clip_left_right = 0
         self.fisheye_correction = [0.0, 0.0, 0.0, 0.0]
+        self.v1_xml = None
 
 class ParsedMetadata(object):
     def __init__(self):
@@ -325,7 +327,7 @@ def parse_mpeg4(input_file, console):
             "permission.")
 
 
-def inject_mpeg4(input_file, output_file, metadata, console):
+def inject_mpeg4(input_file, output_file, metadata, console, force_v1_360_equi_metadata=False):
     with open(input_file, "rb") as in_fh:
 
         mpeg4_file = mpeg.load(in_fh)
@@ -341,6 +343,13 @@ def inject_mpeg4(input_file, output_file, metadata, console):
             if not mpeg4_add_spherical_v2(
                 mpeg4_file, in_fh, metadata, console):
                     console("Error failed to insert spherical data")
+        
+        if force_v1_360_equi_metadata:            
+            if not mpeg4_add_spherical_v1(
+                mpeg4_file, in_fh, metadata):
+                    console("Error failed to force insert v1 spherical data")
+
+
 
         if metadata.audio:
             if not mpeg4_add_audio_metadata(
@@ -377,7 +386,7 @@ def parse_metadata(src, console):
     return None
 
 
-def inject_metadata(src, dest, metadata, console):
+def inject_metadata(src, dest, metadata, console, force_v1_360_equi_metadata=False):
     infile = os.path.abspath(src)
     outfile = os.path.abspath(dest)
 
@@ -397,7 +406,7 @@ def inject_metadata(src, dest, metadata, console):
     extension = os.path.splitext(infile)[1].lower()
 
     if (extension in MPEG_FILE_EXTENSIONS):
-        inject_mpeg4(infile, outfile, metadata, console)
+        inject_mpeg4(infile, outfile, metadata, console, force_v1_360_equi_metadata)
         return
 
     console("Unknown file type")
@@ -564,3 +573,93 @@ def get_spatial_audio_metadata(ambisonic_order, head_locked_stereo):
     metadata['head_locked_stereo'] = head_locked_stereo
     metadata['channel_map'] = range(0, num_channels)
     return metadata
+
+def mpeg4_add_spherical_v1(mpeg4_file, in_fh, metadata):
+    """Adds a spherical uuid box to an mpeg4 file for all video tracks.
+    Args:
+      mpeg4_file: mpeg4, Mpeg4 file structure to add metadata.
+      in_fh: file handle, Source for uncached file contents.
+      metadata: string, xml metadata to inject into spherical tag.
+    """
+    for element in mpeg4_file.moov_box.contents:
+        if element.name == mpeg.constants.TAG_TRAK:
+            added = False
+            element.remove(mpeg.constants.TAG_UUID)
+            for sub_element in element.contents:
+                if sub_element.name != mpeg.constants.TAG_MDIA:
+                    continue
+                for mdia_sub_element in sub_element.contents:
+                    if mdia_sub_element.name != mpeg.constants.TAG_HDLR:
+                        continue
+                    position = mdia_sub_element.content_start() + 8
+                    in_fh.seek(position)
+                    if in_fh.read(4).decode() == mpeg.constants.TRAK_TYPE_VIDE:
+                        added = True
+                        break
+
+                if added:
+                    if not element.add(spherical_uuid(metadata)):
+                        return False
+                    break
+
+    return True
+
+def spherical_uuid(metadata):
+    """Constructs a uuid containing spherical metadata.
+    Args:
+      metadata: String, xml to inject in spherical tag.
+    Returns:
+      uuid_leaf: a box containing spherical metadata.
+    """
+    uuid_leaf = mpeg.Box()
+    assert(len(v1_metadata.SPHERICAL_UUID_ID) == 16)
+    uuid_leaf.name = mpeg.constants.TAG_UUID
+    uuid_leaf.header_size = 8
+    uuid_leaf.content_size = 0
+
+    uuid_leaf.contents = v1_metadata.SPHERICAL_UUID_ID + metadata.v1_xml.encode("utf-8")
+    uuid_leaf.content_size = len(uuid_leaf.contents)
+
+    return uuid_leaf
+
+def generate_spherical_xml(stereo=None):
+    # Configure inject xml.
+    additional_xml = ""
+    if stereo == "top-bottom":
+        additional_xml += v1_metadata.SPHERICAL_XML_CONTENTS_TOP_BOTTOM
+
+    if stereo == "left-right":
+        additional_xml += v1_metadata.SPHERICAL_XML_CONTENTS_LEFT_RIGHT
+
+    spherical_xml = (v1_metadata.SPHERICAL_XML_HEADER +
+                     v1_metadata.SPHERICAL_XML_CONTENTS +
+                     additional_xml +
+                     v1_metadata.SPHERICAL_XML_FOOTER)
+    return spherical_xml
+
+def show_atoms(src, console):
+    infile = os.path.abspath(src)
+
+    try:
+        in_fh = open(infile, "rb")
+        in_fh.close()
+    except:
+        console("Error: " + infile +
+                " does not exist or we do not have permission")
+
+    console("Processing: " + infile)
+    extension = os.path.splitext(infile)[1].lower()
+
+    if extension in MPEG_FILE_EXTENSIONS:
+        with open(infile, "rb") as in_fh:
+            mpeg4_file = mpeg.load(in_fh)
+            if mpeg4_file is None:
+                console("Error, file could not be opened.")
+                return
+
+            console("Loaded file...")
+            mpeg4_file.print_structure();
+            return
+
+    console("Unknown file type")
+    return None
