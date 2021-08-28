@@ -54,7 +54,7 @@ def main():
       action="store_true",
       help=
       "Displays the atom layout for the movie. Note the MOV/MP4 format is not self-parsable"
-      " .e.g. there is no way to know the containts of a continer atom without documentation.")
+      "e.g. there is no way to know the containts of a container atom without documentation.")
 
   video_group = parser.add_argument_group("Spherical Video")
   video_group.add_argument(
@@ -129,7 +129,7 @@ def main():
       "--force_v1_360_equi_metadata",
       action="store_true",
       help="Add v1 metadata as well as v2 metadata to the video." 
-      "only really valid for 360 equirectangular videos, but some video player only enable VR if they recognise v1 metadata")
+      "This is only really valid for 360 equirectangular videos, but some video players only enable VR if they recognise v1 metadata")
 
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
