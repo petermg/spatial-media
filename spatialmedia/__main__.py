@@ -28,6 +28,7 @@ path = os.path.dirname(sys.modules[__name__].__file__)
 path = os.path.join(path, '..')
 sys.path.insert(0, path)
 from spatialmedia import metadata_utils
+from argparse import RawTextHelpFormatter
 
 
 def console(contents):
@@ -38,6 +39,7 @@ def main():
   """Main function for printing and injecting spatial media metadata."""
 
   parser = argparse.ArgumentParser(
+      formatter_class=RawTextHelpFormatter,
       usage=
       "%(prog)s [options] [files...]\n\nBy default prints out spatial media "
       "metadata from specified files.")
@@ -63,9 +65,9 @@ def main():
       action="store",
       dest="stereo_mode",
       metavar="STEREO-MODE",
-      choices=["none", "top-bottom", "left-right", "custom"],
+      choices=["none", "top-bottom", "left-right", "custom", "right-left"],
       default=None,
-      help="stereo mode (none | top-bottom | left-right | custom)")
+      help="stereo mode (none | top-bottom | left-right | custom | right-left)")
   video_group.add_argument(
       "-m",
       "--projection",
@@ -128,8 +130,30 @@ def main():
       "-1",
       "--force_v1_360_equi_metadata",
       action="store_true",
-      help="Add v1 metadata as well as v2 metadata to the video." 
+      help="Add v1 metadata as well as v2 metadata to the video.\n" 
       "This is only really valid for 360 equirectangular videos, but some video players only enable VR if they recognise v1 metadata")
+  video_group.add_argument(
+      "-u",
+      "--mesh_uv",
+      action="store",
+      dest="uv_offsets",
+      metavar="UV_OFFSETS",
+      default="0:1:0:1:0:1:0:1",
+      help="UV offset, needed when then fisheye images have padding in the video i.e.\n" 
+      "the two fisheye images don't touch the edges and each other in the middle.\n" 
+      "Should be a set of eight numbers ':' delimted\n"
+      "\tu_min:u_scale:v_min:v_scale:u_min:u_scale:v_min:v_scale, where each value is a fraction of 1.0\n"
+      "The first 4 number for the left eye, the second for the right eye\n"
+      "e.g. for a 4000x8000 image, consider it being two 4000x4000 images,\n"
+      "if both fisheye images are inset by 40 pixels all around then the parameter would be...\n\n"
+      "0.01:0.98:0.01:0.98:0.01:0.98:0.01:0.98\n\n"
+      "0.01 is the inset value on the left or top (40/4000), the image covers 0.98 of each half frame (4000 - (20 + 20))/4000\n"
+      "if both fisheye images touch the left but have a 40 pixels gap between them\n"
+      " and a 80 pixel padding top and bottom then the parameter would be...\n\n"
+      "0.00:0.995:0.02:0.96:0.005:0.995:0.02:0.96\n\n"
+      "0.00 is the inset value on the left the image covers 0.995 i.e. all bar 20 pixels of each half frame (4000 - (40 + 40))/4000\n"
+      "The right hand image starts 20 pixels in so the u_min for the right eye is 0.005, the rest of the value match the left eye"
+      )
 
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
@@ -175,6 +199,9 @@ def main():
 
     if args.fisheye_correction:
         metadata.fisheye_correction = [float(x) for x in args.fisheye_correction.split(':')]
+
+    if args.uv_offsets:
+        metadata.uv_offsets = [float(x) for x in args.uv_offsets.split(':')]
 
     if args.field_of_view:
       metadata.fov = [float(x) for x in args.field_of_view.split('x')]

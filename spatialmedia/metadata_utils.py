@@ -38,6 +38,7 @@ class Metadata(object):
         self.audio = None
         self.clip_left_right = 0
         self.fisheye_correction = [0.0, 0.0, 0.0, 0.0]
+        self.uv_offsets = [0, 1, 0, 1, 0, 1, 0, 1]
         self.v1_xml = None
 
 class ParsedMetadata(object):

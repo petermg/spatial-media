@@ -32,6 +32,11 @@ python spatialmedia -i -s left-right -m equi-mesh Test_Equi-180_3D.mp4 Test_STV2
 
 This will take the first file, inject the metadata and write the result out to the second file.
 
+
+If you just want to do good old fashioned stereo pairs becuase you've bought a Qoocam EGO just leave out the -m option
+
+python spatialmedia -i -s left-right Test_sbs_3D.mp4 Test_STV2_3D.mp4
+
 or alternatively
 
 cd spatialmedia

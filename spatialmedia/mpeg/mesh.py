@@ -24,6 +24,7 @@ conforms to that outlined in docs/spherical-video-v2-rfc.md
 import struct
 import math
 import io
+from spatialmedia import metadata_utils
 
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
@@ -691,7 +692,17 @@ class meshBox(box.Box):
                 # new_box.contents = new_box.process_mesh(gen_mesh_eq(39, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh_eq(39, 1, metadata.fisheye_correction))
 
                 # actual VR180 code.
-                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
+                #new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 0.98, 0.125, 0.75, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1 , 0.01, 0.98, 0.125, 0.75, metadata.fisheye_correction))
+                #new_box.contents = new_box.process_mesh(gen_mesh(39, 1, 0.0, 1, 0, 1, metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, 0, 1, 0, 1, metadata.fisheye_correction))
+                new_box.contents = new_box.process_mesh(gen_mesh(39, 1, metadata.uv_offsets[0], 
+                                                                        metadata.uv_offsets[1], 
+                                                                        metadata.uv_offsets[2],
+                                                                        metadata.uv_offsets[3],
+                                                                        metadata.fisheye_correction)) + new_box.process_mesh(gen_mesh(39, 1, metadata.uv_offsets[4], 
+                                                       metadata.uv_offsets[5], 
+                                                       metadata.uv_offsets[6],
+                                                       metadata.uv_offsets[7],
+                                                       metadata.fisheye_correction))
                 new_box.meshes = 2
 
         return new_box
