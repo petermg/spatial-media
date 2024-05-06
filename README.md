@@ -1,3 +1,10 @@
+# This version has two binaries compiled for releases. 
+### The first one "sm.exe" is the command line version. The second one "SpatialMediaInjectorGUI.exe" is the GUI with modified options to include not only 16:9 in full frame, but also 1:1 and 4:3 aspect ratio options!
+![image](https://github.com/Vargol/spatial-media/assets/20764493/91433761-0dbf-47db-8f93-1f757f6c15e5)
+
+#### Below is from the original author's page:
+##
+
 This fork is designed to fake googles VR180 camera metadata.
 
 Please download using the 'Clone or download' button, the releases have been inherited from the original Google repository
